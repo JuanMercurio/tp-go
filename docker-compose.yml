@@ -1,0 +1,14 @@
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: datos
+    environment:
+      # MYSQL_DATABASE: test
+      # MYSQL_USER: usuario
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+    ports:
+      - "33306:3306"
+    volumes:
+      # TODO: encontrar mejor lugar para esto
+      - "../mysql-volume:/var/lib/mysql"
