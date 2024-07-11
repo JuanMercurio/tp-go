@@ -1,0 +1,205 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API en la cual podemos consultar cotizaciones de diferentes monedas",
+        "title": "Criptomoneda API",
+        "contact": {}
+    },
+    "paths": {
+        "/cotizacion": {
+            "get": {
+                "description": "Segun una moneda, una fecha de inicio y fin, y una cantidad, nos retorna las cotizaciones",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Moneda"
+                ],
+                "summary": "Retorna las cotizaciones de una moneda",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "El ID de la moneda que queremos",
+                        "name": "moneda_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Fecha desde la cual quiero obtener cotizaciones",
+                        "name": "fecha_inicial",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Fecha hasta la cual quiero obtener cotizaciones",
+                        "name": "fecha_final",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Desde que elemento quiero obtener resutados",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cantidad de resultados que quiero",
+                        "name": "cant",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Cotizacion"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cotizaciones": {
+            "get": {
+                "description": "Podemos filtar segun nombre de moneda, fecha, y cantidad de registros.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Moneda"
+                ],
+                "summary": "Retorna las cotizaciones paginadas segun los filtros",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id de las monedas que queremos separados por espacios",
+                        "name": "monedas",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Fecha desde la cual quiero obtener cotizaciones",
+                        "name": "fecha_inicial",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Fecha hasta la cual quiero obtener cotizaciones",
+                        "name": "fecha_final",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "El tamaño de las paginas, como maximo es 100, el default es 50",
+                        "name": "tam_paginas",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "La cantidad de paginas, como maximo es 10, el default es 1",
+                        "name": "cant_paginas",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {}
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/monedas": {
+            "get": {
+                "description": "Obtiene una lista de todos las monedas disponibles.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Moneda"
+                ],
+                "summary": "Busca todas las monedas",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Criptomoneda"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "domain.Cotizacion": {
+            "type": "object",
+            "properties": {
+                "criptomoneda": {
+                    "$ref": "#/definitions/domain.Criptomoneda"
+                },
+                "fecha": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "valor": {
+                    "type": "number"
+                }
+            }
+        },
+        "domain.Criptomoneda": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "string": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

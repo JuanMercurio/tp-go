@@ -1,0 +1,136 @@
+definitions:
+  domain.Cotizacion:
+    properties:
+      criptomoneda:
+        $ref: '#/definitions/domain.Criptomoneda'
+      fecha:
+        type: string
+      id:
+        type: integer
+      valor:
+        type: number
+    type: object
+  domain.Criptomoneda:
+    properties:
+      id:
+        type: integer
+      string:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API en la cual podemos consultar cotizaciones de diferentes monedas
+  title: Criptomoneda API
+paths:
+  /cotizacion:
+    get:
+      consumes:
+      - application/json
+      description: Segun una moneda, una fecha de inicio y fin, y una cantidad, nos
+        retorna las cotizaciones
+      parameters:
+      - description: El ID de la moneda que queremos
+        in: query
+        name: moneda_id
+        required: true
+        type: string
+      - description: Fecha desde la cual quiero obtener cotizaciones
+        in: query
+        name: fecha_inicial
+        required: true
+        type: string
+      - description: Fecha hasta la cual quiero obtener cotizaciones
+        in: query
+        name: fecha_final
+        required: true
+        type: string
+      - description: Desde que elemento quiero obtener resutados
+        in: query
+        name: offset
+        type: string
+      - description: Cantidad de resultados que quiero
+        in: query
+        name: cant
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Cotizacion'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Retorna las cotizaciones de una moneda
+      tags:
+      - Moneda
+  /cotizaciones:
+    get:
+      consumes:
+      - application/json
+      description: Podemos filtar segun nombre de moneda, fecha, y cantidad de registros.
+      parameters:
+      - description: id de las monedas que queremos separados por espacios
+        in: query
+        name: monedas
+        required: true
+        type: string
+      - description: Fecha desde la cual quiero obtener cotizaciones
+        in: query
+        name: fecha_inicial
+        type: string
+      - description: Fecha hasta la cual quiero obtener cotizaciones
+        in: query
+        name: fecha_final
+        type: string
+      - description: El tamaño de las paginas, como maximo es 100, el default es 50
+        in: query
+        name: tam_paginas
+        type: integer
+      - description: La cantidad de paginas, como maximo es 10, el default es 1
+        in: query
+        name: cant_paginas
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items: {}
+              type: array
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Retorna las cotizaciones paginadas segun los filtros
+      tags:
+      - Moneda
+  /monedas:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una lista de todos las monedas disponibles.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Criptomoneda'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Busca todas las monedas
+      tags:
+      - Moneda
+swagger: "2.0"
