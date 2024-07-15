@@ -16,8 +16,9 @@ type Router struct {
 func Config(h handlers.MonedaHandler) Router {
 	router := gin.Default()
 	router.GET("/monedas", h.BuscarTodos)
-	router.GET("/cotizacion", h.CotizacionMoneda)
+	router.POST("/monedas", h.AltaMoneda)
 	router.GET("/cotizaciones", h.Cotizaciones)
+	router.POST("/cotizaciones", h.AltaCotizaciones)
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	return Router{router}

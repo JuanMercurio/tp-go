@@ -2,11 +2,8 @@ package repos
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
-	"log"
 	"strings"
-	"time"
 
 	"github.com/juanmercurio/tp-go/internal/core/domain"
 	"github.com/juanmercurio/tp-go/internal/ports"
@@ -79,104 +76,82 @@ func (r RepositorioMoneda) BuscarTodos() ([]domain.Criptomoneda, error) {
 	return monedas, nil
 }
 
-func (r RepositorioMoneda) obtenerCotizaciones(rows *sql.Rows) ([]domain.Cotizacion, error) {
+func (r RepositorioMoneda) Cotizaciones(parametros ports.ParamCotizaciones) ([]domain.Cotizacion, error) {
+	SQLParams := aSQL(parametros)
+	q := queryBaseCotizaciones(parametros)
 
-	var cotizaciones []domain.Cotizacion
-	for rows.Next() {
-
-		var cotizacion domain.Cotizacion
-		var id_criptomoneda int
-		var tiempoString string
-
-		if err := rows.Scan(&cotizacion.ID, &id_criptomoneda, &tiempoString, &cotizacion.Valor); err != nil {
-			return nil, err
-		}
-
-		moneda, err := r.BuscarPorId(id_criptomoneda)
-		if err != nil {
-			return nil, err
-		}
-
-		cotizacion.Time, err = time.Parse("2006-01-02 15:04:05", tiempoString)
-		if err != nil {
-			return nil, err
-		}
-
-		cotizacion.Moneda = moneda
-		cotizaciones = append(cotizaciones, cotizacion)
-	}
-
-	if len(cotizaciones) == 0 {
-		return nil, errors.New("no existen cotizaciones")
-	}
-
-	return cotizaciones, nil
-}
-
-// struct?
-func (r RepositorioMoneda) Cotizaciones(p ports.Parametros) ([]domain.Cotizacion, error) {
-	monedas := p.Monedas
-	fechaInicio := p.FechaInicial
-	fechaFinal := p.FechaFinal
-	cant := p.CantPaginas * p.TamPaginas
-
-	query := fmt.Sprintf(
-		`SELECT * FROM go.cotizacion
-		 WHERE id_criptomoneda IN (%s) 
-		 AND fecha BETWEEN ? AND ?
-		 ORDER BY fecha DESC LIMIT ?`,
-		strings.Join(monedas, ","))
-
-	rows, err := r.db.Query(query, fechaInicio, fechaFinal, cant)
+	rows, err := r.db.Query(q, SQLParams.Monedas, SQLParams.FechaInicio, SQLParams.FechaFinal, SQLParams.Cant, SQLParams.Offset)
 	if err != nil {
 		return nil, fmt.Errorf("error ejecutando la query en cotizaciones: %w", err)
 	}
 	defer rows.Close()
 
 	cotizaciones := r.extraerCotizaciones(rows)
-	// if len(cotizaciones) == 0 {
-	// 	return nil, errors.New("no existen cotizaciones para estos filtros")
-	// }
 
 	return cotizaciones, nil
 }
 
-func (r RepositorioMoneda) extraerCotizaciones(rows *sql.Rows) []domain.Cotizacion {
-	var cotizaciones []domain.Cotizacion
-	for rows.Next() {
-		var cotizacion domain.Cotizacion
-		var id_moneda int
-		var tiempoString string
-		if err := rows.Scan(&cotizacion.ID, &id_moneda, &tiempoString, &cotizacion.Valor); err != nil {
-			log.Fatal(err)
-		}
-
-		// TODO no ir siempre a la base esto puede ser mas performante si memoizamos
-		moneda, _ := r.BuscarPorId(id_moneda)
-		cotizacion.Time, _ = time.Parse("2006-01-02 15:04:05", tiempoString)
-		cotizacion.Moneda = moneda
-
-		cotizaciones = append(cotizaciones, cotizacion)
+func (r RepositorioMoneda) AltaCotizaciones(cotizaciones []domain.Cotizacion) error {
+	converter := func(c any) []any {
+		var columnas []any
+		cotizacion := c.(domain.Cotizacion)
+		columnas = append(columnas, any(cotizacion.Moneda.ID))
+		columnas = append(columnas, any(cotizacion.Time))
+		columnas = append(columnas, any(cotizacion.Valor))
+		return columnas
 	}
 
-	return cotizaciones
+	cotizacionesAny := make([]any, len(cotizaciones))
+	for i, c := range cotizaciones {
+		cotizacionesAny[i] = any(c)
+	}
+
+	err := r.AltaMasivaCustomColumns("go.cotizacion", "id_criptomoneda, fecha, valor", cotizacionesAny, converter)
+	if err != nil {
+		return fmt.Errorf("error en el alta de la cotizacion: %w", err)
+	}
+
+	return nil
 }
 
-func (r RepositorioMoneda) BuscarCotizacionMoneda(
-	moneda int,
-	fechaInicial time.Time,
-	fechaFinal time.Time,
-	cant int,
-	offset int,
-) ([]domain.Cotizacion, error) {
-
-	query := "SELECT * FROM go.cotizacion WHERE id_criptomoneda = ? AND fecha BETWEEN ? AND ? LIMIT ? OFFSET ?"
-
-	rows, err := r.db.Query(query, moneda, fechaInicial, fechaFinal, cant, offset)
-	if err != nil {
-		return nil, err
+func (r RepositorioMoneda) AltaMasivaCustomColumns(tabla string, columnas string, data []any, columns func(any) []any) error {
+	var valores []string
+	for range strings.Split(columnas, " ") {
+		valores = append(valores, "?")
 	}
-	defer rows.Close()
 
-	return r.obtenerCotizaciones(rows)
+	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tabla, columnas, strings.Join(valores, ","))
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		fmt.Println("Error al preparar la sentencia:", err)
+		return err
+	}
+	defer stmt.Close()
+
+	tx, err := r.db.Begin()
+	if err != nil {
+		fmt.Println("Error al iniciar transacción:", err)
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			fmt.Println("Transacción revertida debido a un error:", err)
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				fmt.Println("Error al hacer commit de la transacción:", err)
+			}
+		}
+	}()
+
+	for _, row := range data {
+		_, err := stmt.Exec(columns(row)...)
+		if err != nil {
+			fmt.Println("Error al ejecutar la sentencia:", err)
+			return err
+		}
+	}
+
+	return nil
 }

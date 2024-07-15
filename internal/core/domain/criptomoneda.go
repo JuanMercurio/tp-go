@@ -5,7 +5,7 @@ type Criptomoneda struct {
 	Nombre string `json:"string"`
 }
 
-func New(nombre string) Criptomoneda {
+func CrearMoneda(nombre string) Criptomoneda {
 	return Criptomoneda{
 		Nombre: nombre,
 	}

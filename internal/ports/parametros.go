@@ -2,24 +2,49 @@ package ports
 
 import "time"
 
-type tipoFiltro int
+type tipoOrden int
 
 const (
-	FiltroPorNombre tipoFiltro = iota
-	FiltroPorValor
-	FiltroPorFecha
+	OrdenPorNombre tipoOrden = iota
+	OrdenPorValor
+	OrdenPorFecha
 )
 
-type Filtro struct {
-	TipoFiltro tipoFiltro
+type Orden struct {
+	TipoOrden  tipoOrden
 	Ascendente bool
 }
 
-type Parametros struct {
-	Monedas      []string
-	FechaInicial time.Time
-	FechaFinal   time.Time
-	TamPaginas   int
-	CantPaginas  int
-	Filtro       Filtro
+type ParamCotizaciones struct {
+	Monedas       []string
+	FechaInicial  time.Time
+	FechaFinal    time.Time
+	TamPaginas    int
+	CantPaginas   int
+	Orden         Orden
+	PaginaInicial int
+}
+
+func (o Orden) TipoToString() string {
+	switch o.TipoOrden {
+	case OrdenPorNombre:
+		return "nombre"
+	case OrdenPorFecha:
+		return "fecha"
+	case OrdenPorValor:
+		return "valor"
+	default:
+		return ""
+	}
+}
+
+func (o Orden) DireccionToString() string {
+	if o.Ascendente {
+		return "ASC"
+	}
+	return "DESC"
+}
+
+func (o Orden) ToString() string {
+	return o.TipoToString() + " " + o.DireccionToString()
 }
