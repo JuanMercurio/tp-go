@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -12,8 +13,8 @@ type MonedaHandler struct {
 	srv ports.ServicioMonedas
 }
 
-func CrearHandlerMoneda(srv ports.ServicioMonedas) MonedaHandler {
-	return MonedaHandler{
+func CrearHandlerMoneda(srv ports.ServicioMonedas) *MonedaHandler {
+	return &MonedaHandler{
 		srv: srv,
 	}
 }
@@ -23,8 +24,7 @@ func CrearHandlerMoneda(srv ports.ServicioMonedas) MonedaHandler {
 // @Tags			Moneda
 // @Accept			json
 // @Produce		json
-// @Success		200	{object}	[]domain.Criptomoneda
-// @Success		401	{object}	string
+// @Success		200	{object}	[]ports.MonedaOutputDTO
 // @Router			/monedas [get]
 func (mh MonedaHandler) BuscarTodos(c *gin.Context) {
 	todos, err := mh.srv.BuscarTodos()
@@ -44,8 +44,8 @@ func (mh MonedaHandler) BuscarTodos(c *gin.Context) {
 // @Param			Authorization	header		string	true	"Token de autorización"
 // @Param			simbolo			query		string	true	"Simbolo de la moneda"
 // @Param			nombre			query		string	false	"Nombre de la moneda nueva"
-// @Success		200				{object}	string
-// @Failure		400				{object}	string
+// @Success		200				{object}	int
+// @Failure		400				{object}	error
 // @Router			/monedas [post]
 func (mh MonedaHandler) AltaMoneda(c *gin.Context) {
 	// TODO autenticacion
@@ -53,12 +53,17 @@ func (mh MonedaHandler) AltaMoneda(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
+	nombre := c.Query("nombre")
+	simbolo := c.Query("simbolo")
 
-	id, err := mh.srv.AltaMoneda(c.Query("nombre"), c.Query("simbolo"))
+	id, err := mh.srv.AltaMoneda(nombre, simbolo)
 	if err != nil {
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return
 	}
+
+	mh.srv.CotizarNuevaMoneda(simbolo)
+
 	c.JSON(http.StatusOK, gin.H{"id": id})
 }
 
@@ -67,14 +72,14 @@ func (mh MonedaHandler) AltaMoneda(c *gin.Context) {
 // @Accept		json
 // @Produce	json
 // @Param		monedas			query		string	true	"id de las monedas que queremos separados por espacios"
-// @Param		fecha_inicial	query		string	false	"Fecha desde la cual quiero obtener cotizaciones"
-// @Param		fecha_final		query		string	false	"Fecha hasta la cual quiero obtener cotizaciones"
+// @Param		fecha_inicial	query		string	false	"Fecha desde la cual quiero obtener cotizaciones (YYYY-MM-DD HH:MM:SS)"	Format(date-time)
+// @Param		fecha_final		query		string	false	"Fecha hasta la cual quiero obtener cotizaciones (YYYY-MM-DD HH:MM:SS)"	Format(date-time)
 // @Param		tam_paginas		query		string	false	"El tamaño de las paginas, como maximo es 100, el default es 50"
 // @Param		pagina_inicial	query		int		false	"Pagina a partir de la cual sera retornado el query"
 // @Param		cant_paginas	query		int		false	"La cantidad de paginas, como maximo es 10, el default es 1"
-// @Param		orden			query		string	false	"El orden en el cual se devuelven las cotizaciones, el default es por fecha"
-// @Param		orden_direccion	query		string	false	"Indica si es ascendente o descendente, el default es desdencente"
-// @Param		resumen			query		string	false	"Para incluir resumen"
+// @Param		orden			query		string	false	"Ordenar segun alguno de estos valores: fecha(default), valor, nombre"	Enum(fecha, valor, nombre)
+// @Param		orden_direccion	query		string	false	"Indica si es ascendente o descendente, el default es desdencente"				Enum(ascendente, descendente)
+// @Param		resumen			query		string	false	"Para incluir resumen indicar el valor debe ser si"															Enum(si, no)
 // @Success	200				{object}	[]Pagina
 // @Failure	400				{object}	string
 // @Router		/cotizaciones [get]
@@ -123,8 +128,16 @@ func (mh MonedaHandler) AltaCotizaciones(c *gin.Context) {
 		return
 	}
 
+	api := c.Query("api")
+	if !ApiValida(api) {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": fmt.Sprintf("no soportamos la api %s, las validas son: Paprika y CoinBase", api),
+		})
+		return
+	}
+
 	responseBody := make(map[string]any)
-	err := mh.srv.AltaCotizaciones(c.Query("api"))
+	err := mh.srv.AltaCotizaciones(api)
 
 	if err != nil {
 		errores := strings.Split(err.Error(), "\n")
@@ -134,4 +147,8 @@ func (mh MonedaHandler) AltaCotizaciones(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, "Se realizo con exito la cotizacion")
+}
+
+func ApiValida(nombre string) bool {
+	return nombre == "Paprika" || nombre == "CoinBase"
 }

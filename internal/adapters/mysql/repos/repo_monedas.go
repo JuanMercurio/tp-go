@@ -14,8 +14,8 @@ type RepositorioMoneda struct {
 	db *sql.DB
 }
 
-func CrearRepositorioMoneda(db *sql.DB) RepositorioMoneda {
-	return RepositorioMoneda{
+func CrearRepositorioMoneda(db *sql.DB) *RepositorioMoneda {
+	return &RepositorioMoneda{
 		db: db,
 	}
 }
@@ -78,10 +78,8 @@ func (r RepositorioMoneda) BuscarTodos() ([]domain.Criptomoneda, error) {
 }
 
 func (r RepositorioMoneda) Cotizaciones(parametros ports.ParamCotizaciones) ([]domain.Cotizacion, error) {
-	SQLParams := aSQL(parametros)
-	q := queryBaseCotizaciones(parametros)
-
-	rows, err := r.db.Query(q, SQLParams.Monedas, SQLParams.FechaInicio, SQLParams.FechaFinal, SQLParams.Cant, SQLParams.Offset)
+	q := QueryBaseCotizaciones(parametros).toString()
+	rows, err := r.db.Query(q, parametros.FechaInicial, parametros.FechaFinal, parametros.TamPaginas*parametros.CantPaginas, parametros.PaginaInicial)
 	if err != nil {
 		return nil, fmt.Errorf("error ejecutando la query en cotizaciones: %w", err)
 	}
@@ -148,24 +146,20 @@ func (r RepositorioMoneda) AltaMasivaCustomColumns(tabla string, columnas string
 	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tabla, columnas, strings.Join(valores, ","))
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
-		fmt.Println("Error al preparar la sentencia:", err)
 		return err
 	}
 	defer stmt.Close()
 
 	tx, err := r.db.Begin()
 	if err != nil {
-		fmt.Println("Error al iniciar transacción:", err)
 		return err
 	}
 	defer func() {
 		if err != nil {
 			tx.Rollback()
-			fmt.Println("Transacción revertida debido a un error:", err)
 		} else {
 			err = tx.Commit()
 			if err != nil {
-				fmt.Println("Error al hacer commit de la transacción:", err)
 			}
 		}
 	}()
@@ -173,7 +167,6 @@ func (r RepositorioMoneda) AltaMasivaCustomColumns(tabla string, columnas string
 	for _, row := range data {
 		_, err := stmt.Exec(columns(row)...)
 		if err != nil {
-			fmt.Println("Error al ejecutar la sentencia:", err)
 			return err
 		}
 	}
@@ -185,7 +178,6 @@ func (r RepositorioMoneda) Simbolos() []string {
 	query := "SELECT simbolo FROM go.criptomoneda"
 	rows, err := r.db.Query(query)
 	if err != nil {
-		fmt.Println("Error al ejecutar la query:", err)
 		return nil
 	}
 	defer rows.Close()
@@ -195,7 +187,6 @@ func (r RepositorioMoneda) Simbolos() []string {
 	for rows.Next() {
 		var simbolo string
 		if err := rows.Scan(&simbolo); err != nil {
-			fmt.Println("Error al escanear la fila:", err)
 			return nil
 		}
 		simbolos = append(simbolos, simbolo)

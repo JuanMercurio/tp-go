@@ -10,25 +10,34 @@ import (
 )
 
 type MonedaServicio struct {
-	repo      ports.RepositorioMonedas
-	cotizador ports.Cotizador
+	repo        ports.RepositorioMonedas
+	cotizadores map[string]ports.Cotizador
 }
 
-func CrearServicioMoneda(r ports.RepositorioMonedas, c ports.Cotizador) MonedaServicio {
-	return MonedaServicio{
-		repo:      r,
-		cotizador: c,
+func CrearServicioMoneda(r ports.RepositorioMonedas, cotizadores ...ports.Cotizador) *MonedaServicio {
+	mapCotizadores := make(map[string]ports.Cotizador)
+	for _, cotizador := range cotizadores {
+		mapCotizadores[cotizador.GetNombre()] = cotizador
+	}
+	return &MonedaServicio{
+		repo:        r,
+		cotizadores: mapCotizadores,
 	}
 }
 
 func (s MonedaServicio) AltaMoneda(moneda, simbolo string) (int, error) {
-	existe, err := s.cotizador.ExisteMoneda(simbolo)
-	if err != nil {
-		return 0, fmt.Errorf("error al verificar si la moneda existe: %w", err)
-	}
 
-	if !existe {
-		return 0, fmt.Errorf("el simbolo %s no existe en el cotizador", simbolo)
+	for nombre, cotizador := range s.cotizadores {
+
+		fmt.Println("Estoy en el cotizador", nombre)
+		existe, err := cotizador.ExisteMoneda(simbolo)
+		if err != nil {
+			return 0, fmt.Errorf("error al verificar si la moneda existe: %w", err)
+		}
+
+		if !existe {
+			return 0, fmt.Errorf("el simbolo %s no existe en el cotizador: %s", simbolo, nombre)
+		}
 	}
 
 	return s.repo.AltaMoneda(domain.CrearMoneda(moneda, simbolo))
@@ -56,7 +65,7 @@ func (s MonedaServicio) cotizarTodas(api string) error {
 
 	ch := make(chan error, len(monedas))
 	for _, moneda := range monedas {
-		go s.cotizar(api, moneda, ch)
+		go s.cotizarRoutine(api, moneda, ch)
 	}
 	defer close(ch)
 
@@ -71,11 +80,24 @@ func (s MonedaServicio) cotizarTodas(api string) error {
 	return errors.Join(errores...)
 }
 
-func (s MonedaServicio) cotizar(api string, moneda domain.Criptomoneda, c chan error) {
-	valor, err := s.cotizador.Cotizar(api, moneda.Simbolo)
-	if err != nil {
+func (s MonedaServicio) cotizarRoutine(api string, moneda domain.Criptomoneda, c chan error) {
+	if err := s.CotizarMoneda(api, moneda); err != nil {
 		c <- err
 		return
+	}
+	c <- nil
+}
+
+func (s MonedaServicio) CotizarMoneda(api string, moneda domain.Criptomoneda) error {
+
+	cotizador, ok := s.cotizadores[api]
+	if !ok {
+		return fmt.Errorf("no existe el cotizador " + api)
+	}
+
+	valor, err := cotizador.Cotizar(moneda.Simbolo)
+	if err != nil {
+		return err
 	}
 
 	cotizacion := domain.Cotizacion{
@@ -87,35 +109,38 @@ func (s MonedaServicio) cotizar(api string, moneda domain.Criptomoneda, c chan e
 
 	_, err = s.repo.AltaCotizacion(cotizacion)
 	if err != nil {
-		c <- err
-		return
+		return err
 	}
 
-	c <- nil
+	return nil
 }
 
-func (s MonedaServicio) BuscarPorId(id int) (ports.MonedaDTOOutput, error) {
+func (S MonedaServicio) CotizarNuevaMoneda(simbolo string) error {
+	return nil
+}
+
+func (s MonedaServicio) BuscarPorId(id int) (ports.MonedaOutputDTO, error) {
 	moneda, err := s.repo.BuscarPorId(id)
 	if err != nil {
-		return ports.MonedaDTOOutput{}, fmt.Errorf("no se encontro por id %d: %w", id, err)
+		return ports.MonedaOutputDTO{}, fmt.Errorf("no se encontro por id %d: %w", id, err)
 	}
 
-	return ports.MonedaDTOOutput{
+	return ports.MonedaOutputDTO{
 		Id:           moneda.ID,
 		NombreMoneda: moneda.Nombre,
 		Simbolo:      moneda.Simbolo,
 	}, nil
 }
 
-func (s MonedaServicio) BuscarTodos() ([]ports.MonedaDTOOutput, error) {
+func (s MonedaServicio) BuscarTodos() ([]ports.MonedaOutputDTO, error) {
 	monedas, err := s.repo.BuscarTodos()
 	if err != nil {
 		return nil, fmt.Errorf("no se pudieron obtener las monedas del repositorio: %w", err)
 	}
 
-	monedasDTOs := make([]ports.MonedaDTOOutput, len(monedas))
+	monedasDTOs := make([]ports.MonedaOutputDTO, len(monedas))
 	for i, moneda := range monedas {
-		monedasDTOs[i] = ports.MonedaDTOOutput{
+		monedasDTOs[i] = ports.MonedaOutputDTO{
 			Id:           moneda.ID,
 			NombreMoneda: moneda.Nombre,
 			Simbolo:      moneda.Simbolo,

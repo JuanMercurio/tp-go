@@ -18,8 +18,8 @@ type Coinbase struct {
 	Token  string
 }
 
-func Crear(config *config.APIConfig) Coinbase {
-	return Coinbase{
+func Crear(config *config.APIConfig) *Coinbase {
+	return &Coinbase{
 		Nombre: "CoinBase",
 		Url:    config.URL,
 		Token:  config.Token,
@@ -64,7 +64,6 @@ func (c Coinbase) ExisteMoneda(simbolo string) (bool, error) {
 	}
 
 	for _, moneda := range data.Data {
-		fmt.Println(moneda)
 		if moneda.Code == strings.ToUpper(simbolo) {
 			return true, nil
 		}

@@ -18,7 +18,7 @@ func crearPaginas(tamPaginas int, elementos []any) []Pagina {
 		if restantes < tamPaginas {
 			tamPaginas = restantes
 		}
-		p := obtenerPaginas(elementos, offset, tamPaginas)
+		p := obtenerElementos(elementos, offset, tamPaginas)
 		paginas = append(paginas, p)
 		restantes -= tamPaginas
 	}
@@ -32,14 +32,14 @@ func paginasNecesarias(tamPaginas int, filas int) int {
 	return int(math.Ceil(float64(filas) / float64(tamPaginas)))
 }
 
-func obtenerPaginas(cotizaciones []any, offset int, cant int) Pagina {
-	return cotizaciones[offset : offset+cant]
+func obtenerElementos(elementos []any, offset int, cant int) Pagina {
+	return elementos[offset : offset+cant]
 }
 
 func cotizacionesToAny(cotizaciones []ports.CotizacionOutputDTO) []any {
-	s := make([]any, len(cotizaciones))
+	elementos := make([]any, len(cotizaciones))
 	for i, cotizacion := range cotizaciones {
-		s[i] = cotizacion
+		elementos[i] = cotizacion
 	}
-	return s
+	return elementos
 }

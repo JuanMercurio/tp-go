@@ -41,7 +41,6 @@ func Crear() (Config, error) {
 
 	config.ENV = make(map[string]string)
 	config.ENV["DB_USER"] = os.Getenv("DB_USER")
-	config.ENV["DB_USER"] = os.Getenv("DB_USER")
 	config.ENV["DB_PASS"] = os.Getenv("DB_PASS")
 	config.ENV["DB_HOST"] = os.Getenv("DB_HOST")
 	config.ENV["DB_PORT"] = os.Getenv("DB_PORT")

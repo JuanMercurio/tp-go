@@ -1,11 +1,11 @@
 definitions:
-  domain.Criptomoneda:
+  ports.MonedaOutputDTO:
     properties:
       id:
         type: integer
-      simbolo:
+      nombreMoneda:
         type: string
-      string:
+      simbolo:
         type: string
     type: object
 info:
@@ -23,11 +23,13 @@ paths:
         name: monedas
         required: true
         type: string
-      - description: Fecha desde la cual quiero obtener cotizaciones
+      - description: Fecha desde la cual quiero obtener cotizaciones (YYYY-MM-DD HH:MM:SS)
+        format: date-time
         in: query
         name: fecha_inicial
         type: string
-      - description: Fecha hasta la cual quiero obtener cotizaciones
+      - description: Fecha hasta la cual quiero obtener cotizaciones (YYYY-MM-DD HH:MM:SS)
+        format: date-time
         in: query
         name: fecha_final
         type: string
@@ -43,8 +45,8 @@ paths:
         in: query
         name: cant_paginas
         type: integer
-      - description: El orden en el cual se devuelven las cotizaciones, el default
-          es por fecha
+      - description: 'Ordenar segun alguno de estos valores: fecha(default), valor,
+          nombre'
         in: query
         name: orden
         type: string
@@ -52,7 +54,7 @@ paths:
         in: query
         name: orden_direccion
         type: string
-      - description: Para incluir resumen
+      - description: Para incluir resumen indicar el valor debe ser si
         in: query
         name: resumen
         type: string
@@ -116,12 +118,8 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Criptomoneda'
+              $ref: '#/definitions/ports.MonedaOutputDTO'
             type: array
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
       summary: Busca todas las monedas
       tags:
       - Moneda
@@ -150,11 +148,10 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            type: integer
         "400":
           description: Bad Request
-          schema:
-            type: string
+          schema: {}
       summary: Da de alta una moneda
       tags:
       - Moneda

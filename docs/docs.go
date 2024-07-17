@@ -37,13 +37,15 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Fecha desde la cual quiero obtener cotizaciones",
+                        "format": "date-time",
+                        "description": "Fecha desde la cual quiero obtener cotizaciones (YYYY-MM-DD HH:MM:SS)",
                         "name": "fecha_inicial",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Fecha hasta la cual quiero obtener cotizaciones",
+                        "format": "date-time",
+                        "description": "Fecha hasta la cual quiero obtener cotizaciones (YYYY-MM-DD HH:MM:SS)",
                         "name": "fecha_final",
                         "in": "query"
                     },
@@ -67,7 +69,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "El orden en el cual se devuelven las cotizaciones, el default es por fecha",
+                        "description": "Ordenar segun alguno de estos valores: fecha(default), valor, nombre",
                         "name": "orden",
                         "in": "query"
                     },
@@ -79,7 +81,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Para incluir resumen",
+                        "description": "Para incluir resumen indicar el valor debe ser si",
                         "name": "resumen",
                         "in": "query"
                     }
@@ -169,14 +171,8 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.Criptomoneda"
+                                "$ref": "#/definitions/ports.MonedaOutputDTO"
                             }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "string"
                         }
                     }
                 }
@@ -219,30 +215,28 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "type": "integer"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "schema": {}
                     }
                 }
             }
         }
     },
     "definitions": {
-        "domain.Criptomoneda": {
+        "ports.MonedaOutputDTO": {
             "type": "object",
             "properties": {
                 "id": {
                     "type": "integer"
                 },
-                "simbolo": {
+                "nombreMoneda": {
                     "type": "string"
                 },
-                "string": {
+                "simbolo": {
                     "type": "string"
                 }
             }

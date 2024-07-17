@@ -13,7 +13,7 @@ type Router struct {
 	*gin.Engine
 }
 
-func Config(h handlers.MonedaHandler) Router {
+func Config(h *handlers.MonedaHandler) Router {
 
 	router := gin.Default()
 	router.GET("/monedas", h.BuscarTodos)

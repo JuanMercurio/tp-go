@@ -16,8 +16,8 @@ type Paprika struct {
 	MapIds map[string]string
 }
 
-func Crear(config *config.APIConfig) Paprika {
-	return Paprika{
+func Crear(config *config.APIConfig) *Paprika {
+	return &Paprika{
 		Nombre: "Paprika",
 		Url:    config.URL,
 		Token:  config.Token,

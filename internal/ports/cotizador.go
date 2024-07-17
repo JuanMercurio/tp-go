@@ -8,6 +8,7 @@ type Cotizacion struct {
 
 type Cotizador interface {
 	ExisteMoneda(simbolo string) (bool, error)
-	Cotizar(api, simbolos string) (float64, error)
+	Cotizar(simbolos string) (float64, error)
+	GetNombre() string
 	// CotizarConcurrente(simbolos []string) ([]Cotizacion, error)
 }
