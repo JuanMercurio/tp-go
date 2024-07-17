@@ -1,20 +1,18 @@
-FROM alpine:latest as build
+FROM golang as build
 
-RUN apk add --no-cache go
+WORKDIR /build
 
-ENV GOPATH /go
-ENV PATH $GOPATH/bin:$PATH
-
-WORKDIR /app
-
-# despues ver que copiar para performance
 COPY . .
 
 RUN go build -o app cmd/main.go
 
 FROM scratch
 
-COPY --from=build /app/cmd/app /app
+WORKDIR /app
+
+COPY --from=build /build/.env-deploy /app/.env
+COPY --from=build /build/internal/adapters/config/apis_config.json /app/api_config.json
+COPY --from=build /build/app /app
 
 # analizar si usamos CMD
 ENTRYPOINT ["/app"]

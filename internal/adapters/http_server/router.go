@@ -14,6 +14,7 @@ type Router struct {
 }
 
 func Config(h handlers.MonedaHandler) Router {
+
 	router := gin.Default()
 	router.GET("/monedas", h.BuscarTodos)
 	router.POST("/monedas", h.AltaMoneda)

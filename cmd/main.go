@@ -1,7 +1,13 @@
 package main
 
 import (
+	"log"
+
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/juanmercurio/tp-go/internal/adapters/config"
+	"github.com/juanmercurio/tp-go/internal/adapters/cotizador"
+	"github.com/juanmercurio/tp-go/internal/adapters/cotizador/coinbase"
+	"github.com/juanmercurio/tp-go/internal/adapters/cotizador/paprika"
 	"github.com/juanmercurio/tp-go/internal/adapters/http_server"
 	"github.com/juanmercurio/tp-go/internal/adapters/http_server/handlers"
 	"github.com/juanmercurio/tp-go/internal/adapters/mysql"
@@ -12,10 +18,28 @@ import (
 // @title			Criptomoneda API
 // @description	API en la cual podemos consultar cotizaciones de diferentes monedas
 func main() {
-	clienteSQL := mysql.CrearCliente() //TODO esto se podria meter dentro del repositorio en si
+
+	config, err := config.Crear()
+	if err != nil {
+		log.Fatal("Error de config: ", err)
+	}
+
+	clienteSQL, err := mysql.CrearCliente(&config)
+	if err != nil {
+		log.Fatal("Error al inicial el cliente mySQL: ", err)
+	}
+
 	repoMonedas := repos.CrearRepositorioMoneda(clienteSQL)
-	servicio := servicios.CrearServicioMoneda(repoMonedas)
+
+	paprikaAPI := paprika.Crear(&config.Apis.Paprika)
+	coinbaseAPI := coinbase.Crear(&config.Apis.CoinBase)
+	cotizador := cotizador.Crear(paprikaAPI, coinbaseAPI)
+
+	servicio := servicios.CrearServicioMoneda(repoMonedas, cotizador)
+
 	handlerMoneda := handlers.CrearHandlerMoneda(servicio)
+
 	server := http_server.Config(handlerMoneda)
+
 	server.Start()
 }

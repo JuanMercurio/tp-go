@@ -3,8 +3,6 @@ services:
     image: mysql:5.7
     container_name: datos
     environment:
-      # MYSQL_DATABASE: test
-      # MYSQL_USER: usuario
       MYSQL_ROOT_PASSWORD: root
       MYSQL_PASSWORD: root
     ports:
@@ -12,3 +10,10 @@ services:
     volumes:
       # TODO: encontrar mejor lugar para esto
       - "../mysql-volume:/var/lib/mysql"
+  app:
+    image: monedas 
+    container_name: monedas_container
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql

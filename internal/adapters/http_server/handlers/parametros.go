@@ -17,10 +17,10 @@ func validarParametros(c *gin.Context) (ports.ParamCotizaciones, error) {
 		return ports.ParamCotizaciones{}, fmt.Errorf("error en la validacion de fechas: %w", err)
 	}
 
-	// tamPaginas, err := strconv.Atoi(c.DefaultQuery("tam_paginas", "5"))
-	// if err != nil {
-	// 	return ports.ParamCotizaciones{}, fmt.Errorf("el tamaño de las paginas debe ser un numero entero: %w", err)
-	// }
+	tamPaginas, err := strconv.Atoi(c.DefaultQuery("tam_paginas", "50"))
+	if err != nil {
+		return ports.ParamCotizaciones{}, fmt.Errorf("el tamaño de las paginas debe ser un numero entero: %w", err)
+	}
 
 	cantPaginas, err := strconv.Atoi(c.DefaultQuery("cant_paginas", "1"))
 	if err != nil {
@@ -38,7 +38,7 @@ func validarParametros(c *gin.Context) (ports.ParamCotizaciones, error) {
 	parametros := ports.ParamCotizaciones{
 		FechaInicial:  fechaInicial,
 		FechaFinal:    fechaFinal,
-		TamPaginas:    4, //min(50, tamPaginas), // este valor y el de abajo esta harcodeados TODO
+		TamPaginas:    min(50, tamPaginas), // este valor y el de abajo esta harcodeados TODO
 		CantPaginas:   min(10, cantPaginas),
 		Orden:         orden,
 		PaginaInicial: paginaInicial,

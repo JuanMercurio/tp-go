@@ -69,6 +69,7 @@ func (r RepositorioMoneda) extraerCotizaciones(rows *sql.Rows) []domain.Cotizaci
 		var id_moneda int
 		var tiempoString string
 		if err := rows.Scan(&cotizacion.ID, &id_moneda, &tiempoString, &cotizacion.Valor); err != nil {
+			//TODO no deberia ser aun log fatal
 			log.Fatal(err)
 		}
 

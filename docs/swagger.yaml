@@ -3,6 +3,8 @@ definitions:
     properties:
       id:
         type: integer
+      simbolo:
+        type: string
       string:
         type: string
     type: object
@@ -80,6 +82,11 @@ paths:
         name: Authorization
         required: true
         type: string
+      - description: API que se utilizara para cotizar
+        in: query
+        name: api
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -128,10 +135,14 @@ paths:
         name: Authorization
         required: true
         type: string
+      - description: Simbolo de la moneda
+        in: query
+        name: simbolo
+        required: true
+        type: string
       - description: Nombre de la moneda nueva
         in: query
         name: nombre
-        required: true
         type: string
       produces:
       - application/json

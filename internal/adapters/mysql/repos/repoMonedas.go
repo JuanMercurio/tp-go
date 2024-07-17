@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/juanmercurio/tp-go/internal/core/domain"
 	"github.com/juanmercurio/tp-go/internal/ports"
@@ -20,35 +21,35 @@ func CrearRepositorioMoneda(db *sql.DB) RepositorioMoneda {
 }
 
 func (r RepositorioMoneda) AltaMoneda(moneda domain.Criptomoneda) (int, error) {
-	query := "INSERT INTO go.criptomoneda (nombre) VALUES (?)"
-	return r.darDeAltaEntidad(query, moneda.Nombre)
+	query := "INSERT INTO go.criptomoneda (nombre, simbolo) VALUES (?, ?)"
+	return r.darDeAltaEntidad(query, moneda.Nombre, moneda.Simbolo)
 }
 
 func (r RepositorioMoneda) AltaCotizacion(cotizacion domain.Cotizacion) (int, error) {
-	query := "INSERT INTO go.cotizacion (id_criptomoneda, fecha, valor) VALUES (?, ?, ?)"
-	return r.darDeAltaEntidad(query, cotizacion.Moneda.ID, cotizacion.Time, cotizacion.Valor)
+	query := "INSERT INTO go.cotizacion (id_criptomoneda, fecha, valor, api) VALUES (?, ?, ?, ?)"
+	return r.darDeAltaEntidad(query, cotizacion.Moneda.ID, cotizacion.Time, cotizacion.Valor, cotizacion.Api)
 }
 
 func (r RepositorioMoneda) darDeAltaEntidad(query string, params ...any) (int, error) {
 	result, err := r.db.Exec(query, params...)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("error al ejecutar el query en la base: %w", err)
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("error al buscar el id de la moneda insertada: %w", err)
 	}
 
 	return int(id), nil
 }
 
 func (r RepositorioMoneda) BuscarPorId(id int) (domain.Criptomoneda, error) {
-	query := "SELECT id, nombre FROM go.criptomoneda WHERE id = ?"
+	query := "SELECT id, nombre, simbolo FROM go.criptomoneda WHERE id = ?"
 
 	var moneda domain.Criptomoneda
 
-	err := r.db.QueryRow(query, id).Scan(&moneda.ID, &moneda.Nombre)
+	err := r.db.QueryRow(query, id).Scan(&moneda.ID, &moneda.Nombre, &moneda.Simbolo)
 	if err != nil {
 		return domain.Criptomoneda{}, err
 	}
@@ -67,7 +68,7 @@ func (r RepositorioMoneda) BuscarTodos() ([]domain.Criptomoneda, error) {
 
 	for rows.Next() {
 		moneda := domain.Criptomoneda{}
-		if err := rows.Scan(&moneda.ID, &moneda.Nombre); err != nil {
+		if err := rows.Scan(&moneda.ID, &moneda.Nombre, &moneda.Simbolo); err != nil {
 			return nil, err
 		}
 		monedas = append(monedas, moneda)
@@ -89,6 +90,30 @@ func (r RepositorioMoneda) Cotizaciones(parametros ports.ParamCotizaciones) ([]d
 	cotizaciones := r.extraerCotizaciones(rows)
 
 	return cotizaciones, nil
+}
+
+// esto no va
+
+// polemico porque hace este insert por ejemplo
+// INSERT INTO go.cotizacion (id_criptomoneda,fecha,  valor)
+// VALUES ((SELECT id FROM go.criptomoneda where simbolo = "BTC"),"2024-07-15 23:34:56", 64581.195000)
+func (r RepositorioMoneda) InsertarCotizacionesSegunSimbolo(c []ports.Cotizacion) error {
+	queryBase := "INSERT INTO go.cotizacion (id_criptomoneda,fecha,  valor) VALUES "
+	for _, cotizacion := range c {
+		queryBase += fmt.Sprintf(`((SELECT id FROM go.criptomoneda where simbolo = "%s"),"%s", %f),`,
+			cotizacion.Simbolo,
+			time.Now().Format("2006-01-02 15:04:05"),
+			cotizacion.Valor)
+
+	}
+	query := strings.TrimSuffix(queryBase, ",")
+
+	_, err := r.db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r RepositorioMoneda) AltaCotizaciones(cotizaciones []domain.Cotizacion) error {
@@ -154,4 +179,27 @@ func (r RepositorioMoneda) AltaMasivaCustomColumns(tabla string, columnas string
 	}
 
 	return nil
+}
+
+func (r RepositorioMoneda) Simbolos() []string {
+	query := "SELECT simbolo FROM go.criptomoneda"
+	rows, err := r.db.Query(query)
+	if err != nil {
+		fmt.Println("Error al ejecutar la query:", err)
+		return nil
+	}
+	defer rows.Close()
+
+	var simbolos []string
+
+	for rows.Next() {
+		var simbolo string
+		if err := rows.Scan(&simbolo); err != nil {
+			fmt.Println("Error al escanear la fila:", err)
+			return nil
+		}
+		simbolos = append(simbolos, simbolo)
+	}
+
+	return simbolos
 }

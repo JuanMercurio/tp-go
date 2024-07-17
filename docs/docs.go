@@ -121,6 +121,13 @@ const docTemplate = `{
                         "name": "Authorization",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "API que se utilizara para cotizar",
+                        "name": "api",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -196,10 +203,16 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Nombre de la moneda nueva",
-                        "name": "nombre",
+                        "description": "Simbolo de la moneda",
+                        "name": "simbolo",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nombre de la moneda nueva",
+                        "name": "nombre",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -225,6 +238,9 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "integer"
+                },
+                "simbolo": {
+                    "type": "string"
                 },
                 "string": {
                     "type": "string"

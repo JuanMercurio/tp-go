@@ -7,4 +7,5 @@ type Cotizacion struct {
 	Moneda Criptomoneda `json:"criptomoneda"`
 	Valor  float64      `json:"valor"`
 	Time   time.Time    `json:"fecha"`
+	Api    string       `json:"api"`
 }

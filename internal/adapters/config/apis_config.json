@@ -1,0 +1,10 @@
+{
+    "paprika": {
+        "url": "https://api.coinpaprika.com/v1/",
+        "token": "token"
+    },
+    "coinbase": {
+        "url": "https://api.coinbase.com/v2/",
+        "token": "token"
+    }
+}

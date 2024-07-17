@@ -2,16 +2,17 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juanmercurio/tp-go/internal/core/servicios"
+	"github.com/juanmercurio/tp-go/internal/ports"
 )
 
 type MonedaHandler struct {
-	srv servicios.MonedaServicio
+	srv ports.ServicioMonedas
 }
 
-func CrearHandlerMoneda(srv servicios.MonedaServicio) MonedaHandler {
+func CrearHandlerMoneda(srv ports.ServicioMonedas) MonedaHandler {
 	return MonedaHandler{
 		srv: srv,
 	}
@@ -41,7 +42,8 @@ func (mh MonedaHandler) BuscarTodos(c *gin.Context) {
 // @Accept			json
 // @Produce		json
 // @Param			Authorization	header		string	true	"Token de autorización"
-// @Param			nombre			query		string	true	"Nombre de la moneda nueva"
+// @Param			simbolo			query		string	true	"Simbolo de la moneda"
+// @Param			nombre			query		string	false	"Nombre de la moneda nueva"
 // @Success		200				{object}	string
 // @Failure		400				{object}	string
 // @Router			/monedas [post]
@@ -52,7 +54,7 @@ func (mh MonedaHandler) AltaMoneda(c *gin.Context) {
 		return
 	}
 
-	id, err := mh.srv.AltaMoneda(c.Query("nombre"))
+	id, err := mh.srv.AltaMoneda(c.Query("nombre"), c.Query("simbolo"))
 	if err != nil {
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return
@@ -95,7 +97,7 @@ func (mh MonedaHandler) Cotizaciones(c *gin.Context) {
 		return
 	}
 
-	paginas := crearPaginas(parametrosBusqueda.TamPaginas, cotizaciones)
+	paginas := crearPaginas(parametrosBusqueda.TamPaginas, cotizacionesToAny(cotizaciones))
 	body := gin.H{"cotizaciones": paginas}
 
 	if resumen {
@@ -110,6 +112,7 @@ func (mh MonedaHandler) Cotizaciones(c *gin.Context) {
 // @Accept		json
 // @Produce	json
 // @Param		Authorization	header		string	true	"Token de autorización"
+// @Param		api				query		string	true	"API que se utilizara para cotizar"
 // @Success	200				{object}	[]Pagina
 // @Failure	400				{object}	string
 // @Router		/cotizaciones [post]
@@ -120,10 +123,15 @@ func (mh MonedaHandler) AltaCotizaciones(c *gin.Context) {
 		return
 	}
 
-	cotizaciones, err := mh.srv.AltaCotizaciones()
+	responseBody := make(map[string]any)
+	err := mh.srv.AltaCotizaciones(c.Query("api"))
+
 	if err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		errores := strings.Split(err.Error(), "\n")
+		responseBody["errores"] = errores
+		c.JSON(http.StatusConflict, responseBody)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"cotizaciones": cotizaciones})
+
+	c.JSON(http.StatusOK, "Se realizo con exito la cotizacion")
 }

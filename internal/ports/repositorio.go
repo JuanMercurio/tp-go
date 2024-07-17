@@ -11,4 +11,8 @@ type RepositorioMonedas interface {
 	BuscarPorId(int) (domain.Criptomoneda, error)
 	BuscarTodos() ([]domain.Criptomoneda, error)
 	Cotizaciones(ParamCotizaciones) ([]domain.Cotizacion, error)
+	Simbolos() []string
+
+	//polemico?
+	// InsertarCotizacionesSegunSimbolo([]Cotizacion) error
 }
