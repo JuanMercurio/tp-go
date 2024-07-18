@@ -2,6 +2,7 @@ package repos
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -10,32 +11,38 @@ import (
 	"github.com/juanmercurio/tp-go/internal/ports"
 )
 
-type SentenciaSQL struct {
-	Select      string
-	From        string
-	Where       string
-	OrderBy     string
-	LimitOffset string
-}
+func QueryBaseCotizaciones(p ports.Filter) queryBuilder {
 
-func (s SentenciaSQL) toString() string {
-	// TODO validaciones
-	return s.Select + " " + s.From + " " + s.Where + " " + s.OrderBy + " " + s.LimitOffset
-}
-
-func QueryBaseCotizaciones(p ports.ParamCotizaciones) SentenciaSQL {
-
-	var sentencia SentenciaSQL
-	sentencia.Select = "SELECT id, id_criptomoneda, fecha, valor, api"
+	var sentencia queryBuilder
 	sentencia.From = "FROM cotizacion"
-	sentencia.Where = "WHERE id_criptomoneda IN (" + strings.Join(p.Monedas, ",") + ") AND fecha BETWEEN ? AND ?"
-	sentencia.OrderBy = crearSentenciaOrderBy(p.Orden)
-	sentencia.LimitOffset = "LIMIT ? OFFSET ?"
+
+	if len(p.Monedas) > 0 {
+		fmt.Println(len(p.Monedas), "-----------------")
+		monedas := strings.Join(p.Monedas, ",")
+		sentencia.AddWhere("id_criptomoneda IN (" + monedas + ")")
+	}
+
+	if !p.FechaInicial.IsZero() {
+		fechaSQL := p.FechaInicial.Format("2006-01-02 15:04:05")
+		sentencia.AddWhere("fecha >= " + "'" + fechaSQL + "'")
+	}
+
+	if !p.FechaFinal.IsZero() {
+		fechaSQL := p.FechaFinal.Format("2006-01-02 15:04:05")
+		sentencia.AddWhere("fecha <= " + "'" + fechaSQL + "'")
+	}
+
+	if p.Usuario != 0 {
+		sentencia.AddJoin("usuario_criptomoneda", "cotizacion.id_criptomoneda = usuario_criptomoneda.id_criptomoneda")
+		sentencia.AddWhere(fmt.Sprintf("usuario_criptomoneda.id_usuario = %d", (p.Usuario)))
+	}
+
+	sentencia.AddOrderBy(ordenToString(p.Orden))
 
 	return sentencia
 }
 
-func crearSentenciaOrderBy(orden ports.Orden) string {
+func ordenToString(orden ports.Orden) string {
 	var columna, columnaOrden string
 	switch orden.TipoOrden {
 	case ports.OrdenPorFecha:
@@ -52,7 +59,7 @@ func crearSentenciaOrderBy(orden ports.Orden) string {
 		columnaOrden = "DESC"
 	}
 
-	return "ORDER BY " + columna + " " + columnaOrden
+	return columna + " " + columnaOrden
 }
 
 func (r RepositorioMoneda) extraerCotizaciones(rows *sql.Rows) []domain.Cotizacion {
@@ -64,7 +71,7 @@ func (r RepositorioMoneda) extraerCotizaciones(rows *sql.Rows) []domain.Cotizaci
 		var cotizacion domain.Cotizacion
 		var id_moneda int
 		var tiempoString string
-		if err := rows.Scan(&cotizacion.ID, &id_moneda, &tiempoString, &cotizacion.Valor, &cotizacion.Api); err != nil {
+		if err := rows.Scan(&id_moneda, &tiempoString, &cotizacion.Valor, &cotizacion.Api); err != nil {
 			//TODO no deberia ser aun log fatal
 			log.Fatal(err)
 		}

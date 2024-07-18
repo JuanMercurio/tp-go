@@ -5,7 +5,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/juanmercurio/tp-go/internal/adapters/config"
-	"github.com/juanmercurio/tp-go/internal/adapters/cotizador"
 	"github.com/juanmercurio/tp-go/internal/adapters/cotizador/coinbase"
 	"github.com/juanmercurio/tp-go/internal/adapters/cotizador/paprika"
 	"github.com/juanmercurio/tp-go/internal/adapters/http_server"
@@ -33,13 +32,14 @@ func main() {
 
 	paprikaAPI := paprika.Crear(&config.Apis.Paprika)
 	coinbaseAPI := coinbase.Crear(&config.Apis.CoinBase)
-	cotizador := cotizador.Crear(paprikaAPI, coinbaseAPI)
 
-	servicio := servicios.CrearServicioMoneda(repoMonedas, cotizador)
+	servicio := servicios.CrearServicioMoneda(repoMonedas, paprikaAPI, coinbaseAPI)
 
 	handlerMoneda := handlers.CrearHandlerMoneda(servicio)
 
 	server := http_server.Config(handlerMoneda)
 
 	server.Start()
+
+	//todo end
 }

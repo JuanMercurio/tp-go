@@ -15,7 +15,7 @@ type Orden struct {
 	Ascendente bool
 }
 
-type ParamCotizaciones struct {
+type Filter struct {
 	Monedas       []string
 	FechaInicial  time.Time
 	FechaFinal    time.Time
@@ -23,6 +23,13 @@ type ParamCotizaciones struct {
 	CantPaginas   int
 	Orden         Orden
 	PaginaInicial int
+	Usuario       int
+}
+
+type Resumen struct {
+	FechaInicial time.Time
+	FechaFinal   time.Time
+	Monedas      []MonedaOutputDTO
 }
 
 func (o Orden) TipoToString() string {

@@ -16,10 +16,15 @@ type Router struct {
 func Config(h *handlers.MonedaHandler) Router {
 
 	router := gin.Default()
+
+	router.POST("/monedas", handlers.Autenticar, h.AltaMoneda)
+	router.POST("/cotizaciones", handlers.Autenticar, h.AltaCotizaciones)
+
+	router.POST("/usuario", h.AltaUsuario)
+	router.DELETE("/usuario", h.BajaUsuario)
+
 	router.GET("/monedas", h.BuscarTodos)
-	router.POST("/monedas", h.AltaMoneda)
 	router.GET("/cotizaciones", h.Cotizaciones)
-	router.POST("/cotizaciones", h.AltaCotizaciones)
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	return Router{router}

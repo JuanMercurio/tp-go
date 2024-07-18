@@ -1,6 +1,7 @@
 DIRBIN=bin/
 BIN=$(DIRBIN)app
 MAIN=cmd/main.go
+DEPENDENCIES=
 
 build: fmt
 	go build -o $(BIN) $(MAIN)

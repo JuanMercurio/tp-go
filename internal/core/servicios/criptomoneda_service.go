@@ -3,6 +3,8 @@ package servicios
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/juanmercurio/tp-go/internal/core/domain"
@@ -48,30 +50,36 @@ func (s MonedaServicio) AltaCotizacion(cotizacion domain.Cotizacion) (int, error
 }
 
 func (s MonedaServicio) AltaCotizaciones(api string) error {
-	err := s.cotizarTodas(api)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s MonedaServicio) cotizarTodas(api string) error {
 
 	monedas, err := s.repo.BuscarTodos()
 	if err != nil {
 		return err
 	}
 
-	ch := make(chan error, len(monedas))
-	for _, moneda := range monedas {
-		go s.cotizarRoutine(api, moneda, ch)
+	//TODO la cantidad de go routines esta hardcodeada
+	cantRoutines := 10
+
+	chErrors := make(chan error)
+	chMonedas := make(chan domain.Criptomoneda)
+
+	var wg sync.WaitGroup
+	wg.Add(cantRoutines)
+
+	for i := 0; i < cantRoutines; i++ {
+		go s.cotizarRoutine(api, chMonedas, chErrors, &wg)
 	}
-	defer close(ch)
+
+	for _, moneda := range monedas {
+		chMonedas <- moneda
+	}
+	close(chMonedas)
+
+	wg.Wait()
+	close(chErrors)
 
 	var errores []error
 	for i := 0; i < len(monedas); i++ {
-		err := <-ch
+		err := <-chErrors
 		if err != nil {
 			errores = append(errores, err)
 		}
@@ -80,24 +88,31 @@ func (s MonedaServicio) cotizarTodas(api string) error {
 	return errors.Join(errores...)
 }
 
-func (s MonedaServicio) cotizarRoutine(api string, moneda domain.Criptomoneda, c chan error) {
-	if err := s.CotizarMoneda(api, moneda); err != nil {
-		c <- err
-		return
+func (s MonedaServicio) cotizarRoutine(api string,
+	monedasCanal chan domain.Criptomoneda,
+	errorCanal chan error,
+	wg *sync.WaitGroup) {
+
+	for moneda := range monedasCanal {
+		if _, err := s.cotizarMonedaYPersistir(api, moneda); err != nil {
+			errorCanal <- err
+		}
 	}
-	c <- nil
+
+	wg.Done()
 }
 
-func (s MonedaServicio) CotizarMoneda(api string, moneda domain.Criptomoneda) error {
+// TODO seria mejor si retorna la cotizacion entera
+func (s MonedaServicio) cotizarMonedaYPersistir(api string, moneda domain.Criptomoneda) (float64, error) {
 
 	cotizador, ok := s.cotizadores[api]
 	if !ok {
-		return fmt.Errorf("no existe el cotizador " + api)
+		return 0, fmt.Errorf("no existe el cotizador " + api)
 	}
 
 	valor, err := cotizador.Cotizar(moneda.Simbolo)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	cotizacion := domain.Cotizacion{
@@ -109,14 +124,10 @@ func (s MonedaServicio) CotizarMoneda(api string, moneda domain.Criptomoneda) er
 
 	_, err = s.repo.AltaCotizacion(cotizacion)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
-}
-
-func (S MonedaServicio) CotizarNuevaMoneda(simbolo string) error {
-	return nil
+	return valor, nil
 }
 
 func (s MonedaServicio) BuscarPorId(id int) (ports.MonedaOutputDTO, error) {
@@ -150,10 +161,10 @@ func (s MonedaServicio) BuscarTodos() ([]ports.MonedaOutputDTO, error) {
 	return monedasDTOs, nil
 }
 
-func (s MonedaServicio) Cotizaciones(p ports.ParamCotizaciones) ([]ports.CotizacionOutputDTO, error) {
-	cotizaciones, err := s.repo.Cotizaciones(p)
+func (s MonedaServicio) Cotizaciones(p ports.Filter) (int, []ports.CotizacionOutputDTO, error) {
+	cantidad, cotizaciones, err := s.repo.Cotizaciones(p)
 	if err != nil {
-		return nil, fmt.Errorf("no se pudo obtener la cotizaciones del repositorio: %w", err)
+		return 0, nil, fmt.Errorf("no se pudo obtener la cotizaciones del repositorio: %w", err)
 	}
 
 	cotizacionesDTOs := make([]ports.CotizacionOutputDTO, len(cotizaciones))
@@ -166,29 +177,53 @@ func (s MonedaServicio) Cotizaciones(p ports.ParamCotizaciones) ([]ports.Cotizac
 			Api:          cotizacion.Api,
 		}
 	}
-	return cotizacionesDTOs, nil
+	return cantidad, cotizacionesDTOs, nil
 }
 
-// func (s MonedaServicio) AltaCotizaciones() error {
-// 	monedas, err := s.repo.BuscarTodos()
-// 	if err != nil {
-// 		return err
-// 	}
+func (s MonedaServicio) CotizarNuevaMoneda(id int, simbolo string) error {
+	//todo implementar
+	return nil
+}
 
-// 	var simbolos []string
-// 	for _, moneda := range monedas {
-// 		simbolos = append(simbolos, moneda.Simbolo)
-// 	}
+func (s MonedaServicio) CrearResumen(filtros ports.Filter) ports.Resumen {
 
-// 	var errores []error
-// 	cotizaciones, err := s.cotizador.CotizarConcurrente(simbolos)
-// 	if err != nil {
-// 		errores = append(errores, err)
-// 	}
+	// var resumen ports.Resumen
+	// resumen.FechaFinal = obtenerFechaFinal(filtros)
+	// resumen.FechaInicial = obtenerFechaInicial(filtros)
+	// resumen.Monedas = obtenerMonedas(filtros)
+	return ports.Resumen{}
 
-// 	if err := s.repo.InsertarCotizacionesSegunSimbolo(cotizaciones); err != nil {
-// 		errores = append(errores, err)
-// 	}
+}
 
-// 	return errors.Join(errores...)
-// }
+func (s MonedaServicio) obtenerFechaFinal(filtros ports.Filter) time.Time {
+	// if filtros.FechaFinal.IsZero() {
+	// 	return s.repo.GetAgregatte(filtros, "min", )
+	// }
+	return time.Time{}
+
+}
+
+func (s MonedaServicio) obtenerFechaInicial(filtros ports.Filter) time.Time {
+	return time.Time{}
+
+}
+
+func (s MonedaServicio) obtenerMonedas(filtros ports.Filter) []ports.MonedaOutputDTO {
+	return nil
+}
+
+func (s MonedaServicio) AltaUsuario(nombre string) (int, error) {
+	id, err := s.repo.AltaUsuario(domain.CrearUsuario(nombre))
+	if err != nil {
+		if strings.Contains(err.Error(), "Duplicate") {
+			return 0, fmt.Errorf("el usuario ya existe")
+		}
+
+		return 0, err
+	}
+	return id, nil
+}
+
+func (s MonedaServicio) BajaUsuario(id int) error {
+	return s.repo.BajaUsuario(id)
+}

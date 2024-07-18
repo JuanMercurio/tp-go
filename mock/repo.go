@@ -110,7 +110,7 @@ func (mr *MockRepositorioMonedasMockRecorder) BuscarTodos() *gomock.Call {
 }
 
 // Cotizaciones mocks base method.
-func (m *MockRepositorioMonedas) Cotizaciones(arg0 ports.ParamCotizaciones) ([]domain.Cotizacion, error) {
+func (m *MockRepositorioMonedas) Cotizaciones(arg0 ports.Filter) ([]domain.Cotizacion, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Cotizaciones", arg0)
 	ret0, _ := ret[0].([]domain.Cotizacion)

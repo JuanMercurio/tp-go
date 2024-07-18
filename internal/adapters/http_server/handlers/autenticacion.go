@@ -1,21 +1,24 @@
 package handlers
 
 import (
-	"errors"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func autenticarUsuario(c *gin.Context) error {
+func Autenticar(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		return errors.New("se necesita un token para realizar esta operacion")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "se necesita token para realizar esta operacion"})
+		c.Abort()
+		return
 	}
 
-	//TODO agregar jwt aca
 	if token != "token" {
-		return errors.New("token incorrecto")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "token incorrecto"})
+		c.Abort()
+		return
 	}
 
-	return nil
+	c.Next()
 }

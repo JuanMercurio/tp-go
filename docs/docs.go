@@ -32,8 +32,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "id de las monedas que queremos separados por espacios",
                         "name": "monedas",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -77,6 +76,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Indica si es ascendente o descendente, el default es desdencente",
                         "name": "orden_direccion",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Usuario elegido",
+                        "name": "usuario",
                         "in": "query"
                     },
                     {
@@ -224,6 +229,78 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/usuario": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Moneda"
+                ],
+                "summary": "Crear un usuario",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "nombre del nuevo usuario",
+                        "name": "nombre",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Moneda"
+                ],
+                "summary": "Da de baja a un usuario",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id del usuario que se desea dar de baja",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -233,7 +310,7 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "nombreMoneda": {
+                "nombre": {
                     "type": "string"
                 },
                 "simbolo": {

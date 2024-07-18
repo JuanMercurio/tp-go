@@ -77,17 +77,35 @@ func (r RepositorioMoneda) BuscarTodos() ([]domain.Criptomoneda, error) {
 	return monedas, nil
 }
 
-func (r RepositorioMoneda) Cotizaciones(parametros ports.ParamCotizaciones) ([]domain.Cotizacion, error) {
-	q := QueryBaseCotizaciones(parametros).toString()
-	rows, err := r.db.Query(q, parametros.FechaInicial, parametros.FechaFinal, parametros.TamPaginas*parametros.CantPaginas, parametros.PaginaInicial)
+func (r RepositorioMoneda) Cotizaciones(parametros ports.Filter) (int, []domain.Cotizacion, error) {
+
+	//TODO modularizar este codigo
+	q := QueryBaseCotizaciones(parametros)
+	fmt.Println(q.toString())
+
+	q.Select = "SELECT COUNT(*)"
+	var cantidad int
+	fmt.Println(q.toString())
+
+	err := r.db.QueryRow(q.toString()).Scan(&cantidad)
 	if err != nil {
-		return nil, fmt.Errorf("error ejecutando la query en cotizaciones: %w", err)
+		return 0, nil, fmt.Errorf("error ejecutando la query en cotizaciones: %w", err)
+	}
+
+	q.Select = "SELECT cotizacion.id_criptomoneda, fecha, valor, api"
+	q.AddLimit(parametros.TamPaginas * parametros.CantPaginas)
+	q.AddOffset(parametros.PaginaInicial)
+	fmt.Println(q.toString())
+
+	rows, err := r.db.Query(q.toString())
+	if err != nil {
+		return 0, nil, fmt.Errorf("error ejecutando la query en cotizaciones: %w", err)
 	}
 	defer rows.Close()
 
 	cotizaciones := r.extraerCotizaciones(rows)
 
-	return cotizaciones, nil
+	return cantidad, cotizaciones, nil
 }
 
 // esto no va
@@ -193,4 +211,24 @@ func (r RepositorioMoneda) Simbolos() []string {
 	}
 
 	return simbolos
+}
+
+func (r RepositorioMoneda) AltaUsuario(usuario domain.Usuario) (int, error) {
+	query := "INSERT INTO usuario  (nombre, activo ) VALUES ( ?, true)"
+	return r.darDeAltaEntidad(query, usuario.Nombre)
+}
+
+// esta es una baja de usuario logica
+func (r RepositorioMoneda) BajaUsuario(id int) error {
+	query := "UPDATE usuario SET activo = false  where id = ?"
+	_, err := r.db.Query(query, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r RepositorioMoneda) BajaUsuarioEliminando(id int) error {
+	//TODO
+	return nil
 }

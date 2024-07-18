@@ -13,15 +13,12 @@ type Filtros struct {
 	OrdenDireccion string `form:"orden_direccion"`
 }
 
-func crearResumen(params ports.ParamCotizaciones) map[string]any {
+func (h MonedaHandler) crearResumen(params ports.Filter) map[string]any {
 	filtros := make(map[string]any)
-	filtros["monedas"] = params.Monedas
-	filtros["fecha_inicial"] = params.FechaInicial
-	filtros["fecha_final"] = params.FechaFinal
-	filtros["tam_paginas"] = params.TamPaginas
-	filtros["cant_paginas"] = params.CantPaginas
-	filtros["orden"] = params.Orden.TipoToString()
-	filtros["orden_direccion"] = params.Orden.DireccionToString()
-	filtros["pagina_inicial"] = params.PaginaInicial + 1
+	// filtros["monedas_disponibles"] = h.srv.MonedasDisponibles(params)
+	// filtros["fecha_inicial"] = h.srv.FechaMinima(params)
+	// filtros["fecha_final"] = h.srv.FechaMaxima(params)
+	// filtros["orden"] = params.Orden.TipoToString()
+	// filtros["orden_direccion"] = params.Orden.DireccionToString()
 	return filtros
 }

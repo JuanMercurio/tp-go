@@ -11,20 +11,20 @@ import (
 	"github.com/juanmercurio/tp-go/internal/ports"
 )
 
-func validarParametros(c *gin.Context) (ports.ParamCotizaciones, error) {
+func validarParametros(c *gin.Context) (ports.Filter, error) {
 	fechaInicial, fechaFinal, err := validarFechas(c.Query("fecha_inicial"), c.Query("fecha_final"))
 	if err != nil {
-		return ports.ParamCotizaciones{}, fmt.Errorf("error en la validacion de fechas: %w", err)
+		return ports.Filter{}, fmt.Errorf("error en la validacion de fechas: %w", err)
 	}
 
 	tamPaginas, err := strconv.Atoi(c.DefaultQuery("tam_paginas", "50"))
 	if err != nil {
-		return ports.ParamCotizaciones{}, fmt.Errorf("el tamaño de las paginas debe ser un numero entero: %w", err)
+		return ports.Filter{}, fmt.Errorf("el tamaño de las paginas debe ser un numero entero: %w", err)
 	}
 
-	cantPaginas, err := strconv.Atoi(c.DefaultQuery("cant_paginas", "1"))
+	cantPaginas, err := strconv.Atoi(c.DefaultQuery("cant_paginas", "10"))
 	if err != nil {
-		return ports.ParamCotizaciones{}, fmt.Errorf("a cantidad de paginas debe ser un numero entero: %w", err)
+		return ports.Filter{}, fmt.Errorf("a cantidad de paginas debe ser un numero entero: %w", err)
 	}
 
 	orden := validarOrden(c.Query("orden"), c.Query("orden_direccion"))
@@ -33,9 +33,17 @@ func validarParametros(c *gin.Context) (ports.ParamCotizaciones, error) {
 	paginaInicial, _ := strconv.Atoi(c.DefaultQuery("pagina_inicial", "1"))
 	paginaInicial--
 
-	monedasSlice := strings.Split(c.Query("monedas"), " ")
+	usuarioId, err := strconv.Atoi(c.DefaultQuery("usuario", "0"))
+	if err != nil {
+		return ports.Filter{}, fmt.Errorf("el id de usuario debe ser un numero")
+	}
 
-	parametros := ports.ParamCotizaciones{
+	var monedasSlice []string
+	if monedas := c.Query("monedas"); monedas != "" {
+		monedasSlice = strings.Split(monedas, " ")
+	}
+
+	parametros := ports.Filter{
 		FechaInicial:  fechaInicial,
 		FechaFinal:    fechaFinal,
 		TamPaginas:    min(50, tamPaginas), // este valor y el de abajo esta harcodeados TODO
@@ -43,6 +51,7 @@ func validarParametros(c *gin.Context) (ports.ParamCotizaciones, error) {
 		Orden:         orden,
 		PaginaInicial: paginaInicial,
 		Monedas:       monedasSlice,
+		Usuario:       usuarioId,
 	}
 
 	// TODO cambiar los valores harcodeados de maximos
@@ -69,35 +78,53 @@ func validarOrden(orden string, ordenDireccion string) ports.Orden {
 
 func validarFechas(fechaInicial string, fechaFinal string) (time.Time, time.Time, error) {
 
+	if fechaFinal == "" && fechaInicial == "" {
+		return time.Time{}, time.Time{}, nil
+	}
+
+	var fechaInicialValida time.Time
+	var fechaFinalValida time.Time
 	var errs []error
-	fechaInicialDefault := time.Now().AddDate(0, 0, -14)
-	fechaFinalDefault := time.Now()
+	var err error
 
-	fechaInicialValidada, err := validarFecha(fechaInicial, fechaInicialDefault)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("error de validacion de fecha_inicial:  %w", err))
+	if fechaFinal != "" {
+		fechaFinalValida, err = validarFecha(fechaFinal)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("error de validacion de fecha_inicial:  %w", err))
+		}
 	}
 
-	fechaFinalValidada, err := validarFecha(fechaFinal, fechaFinalDefault)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("error de validacion de fecha_final: %w", err))
+	if fechaFinal != "" {
+		fechaFinalValida, err = validarFecha(fechaFinal)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("error de validacion de fecha_final:  %w", err))
+		}
 	}
 
-	if fechaInicialValidada.After(fechaFinalValidada) || fechaFinalValidada == fechaInicialValidada {
-		return time.Time{}, time.Time{}, fmt.Errorf("el rango de las fechas es invalido")
+	if !rangoValido(fechaInicialValida, fechaFinalValida) {
+		errs = append(errs, fmt.Errorf("el rango de las fechas es invalido"))
 	}
 
 	if len(errs) > 0 {
 		return time.Time{}, time.Time{}, errors.Join(errs...)
 	}
 
-	return fechaInicialValidada, fechaFinalValidada, nil
+	return fechaInicialValida, fechaFinalValida, nil
 }
 
-func validarFecha(fechaObtenida string, fechaDefault time.Time) (time.Time, error) {
-	if fechaObtenida == "" {
-		return fechaDefault, nil
+func rangoValido(inicial, final time.Time) bool {
+	if inicial.IsZero() || final.IsZero() {
+		return true
 	}
+
+	if inicial.After(final) || inicial == final {
+		return false
+	}
+
+	return true
+}
+
+func validarFecha(fechaObtenida string) (time.Time, error) {
 
 	fecha, err := time.Parse("2006-01-02 15:04:05", fechaObtenida)
 	if err != nil {

@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS criptomoneda (
     simbolo VARCHAR(10) NOT NULL
 );
 
--- Crear la tabla 'cotizacion'
-CREATE TABLE IF NOT EXISTS cotizacion (
+-- Crear la tabla ' email VARCHAR(100) NOT NULL
+NOT EXISTS cotizacion (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_criptomoneda INT,
     fecha DATETIME,

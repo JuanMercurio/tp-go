@@ -3,7 +3,7 @@ definitions:
     properties:
       id:
         type: integer
-      nombreMoneda:
+      nombre:
         type: string
       simbolo:
         type: string
@@ -21,7 +21,6 @@ paths:
       - description: id de las monedas que queremos separados por espacios
         in: query
         name: monedas
-        required: true
         type: string
       - description: Fecha desde la cual quiero obtener cotizaciones (YYYY-MM-DD HH:MM:SS)
         format: date-time
@@ -54,6 +53,10 @@ paths:
         in: query
         name: orden_direccion
         type: string
+      - description: Usuario elegido
+        in: query
+        name: usuario
+        type: integer
       - description: Para incluir resumen indicar el valor debe ser si
         in: query
         name: resumen
@@ -153,6 +156,53 @@ paths:
           description: Bad Request
           schema: {}
       summary: Da de alta una moneda
+      tags:
+      - Moneda
+  /usuario:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: id del usuario que se desea dar de baja
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Da de baja a un usuario
+      tags:
+      - Moneda
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: nombre del nuevo usuario
+        in: query
+        name: nombre
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Crear un usuario
       tags:
       - Moneda
 swagger: "2.0"

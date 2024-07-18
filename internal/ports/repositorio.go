@@ -10,9 +10,8 @@ type RepositorioMonedas interface {
 	AltaCotizaciones([]domain.Cotizacion) error
 	BuscarPorId(int) (domain.Criptomoneda, error)
 	BuscarTodos() ([]domain.Criptomoneda, error)
-	Cotizaciones(ParamCotizaciones) ([]domain.Cotizacion, error)
+	Cotizaciones(Filter) (int, []domain.Cotizacion, error)
+	AltaUsuario(domain.Usuario) (int, error)
+	BajaUsuario(int) error
 	Simbolos() []string
-
-	//polemico?
-	// InsertarCotizacionesSegunSimbolo([]Cotizacion) error
 }

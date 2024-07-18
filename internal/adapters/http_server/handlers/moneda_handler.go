@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -19,13 +20,13 @@ func CrearHandlerMoneda(srv ports.ServicioMonedas) *MonedaHandler {
 	}
 }
 
-// @Summary		Busca todas las monedas
-// @Description	Obtiene una lista de todos las monedas disponibles.
-// @Tags			Moneda
-// @Accept			json
-// @Produce		json
-// @Success		200	{object}	[]ports.MonedaOutputDTO
-// @Router			/monedas [get]
+//	@Summary		Busca todas las monedas
+//	@Description	Obtiene una lista de todos las monedas disponibles.
+//	@Tags			Moneda
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	[]ports.MonedaOutputDTO
+//	@Router			/monedas [get]
 func (mh MonedaHandler) BuscarTodos(c *gin.Context) {
 	todos, err := mh.srv.BuscarTodos()
 	if err != nil {
@@ -36,23 +37,18 @@ func (mh MonedaHandler) BuscarTodos(c *gin.Context) {
 	c.JSON(http.StatusOK, todos)
 }
 
-// @Summary		Da de alta una moneda
-// @Description	Si tenemos las credenciales podemos dar de alta una moneda
-// @Tags			Moneda
-// @Accept			json
-// @Produce		json
-// @Param			Authorization	header		string	true	"Token de autorización"
-// @Param			simbolo			query		string	true	"Simbolo de la moneda"
-// @Param			nombre			query		string	false	"Nombre de la moneda nueva"
-// @Success		200				{object}	int
-// @Failure		400				{object}	error
-// @Router			/monedas [post]
+//	@Summary		Da de alta una moneda
+//	@Description	Si tenemos las credenciales podemos dar de alta una moneda
+//	@Tags			Moneda
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string	true	"Token de autorización"
+//	@Param			simbolo			query		string	true	"Simbolo de la moneda"
+//	@Param			nombre			query		string	false	"Nombre de la moneda nueva"
+//	@Success		200				{object}	int
+//	@Failure		400				{object}	error
+//	@Router			/monedas [post]
 func (mh MonedaHandler) AltaMoneda(c *gin.Context) {
-	// TODO autenticacion
-	if err := autenticarUsuario(c); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		return
-	}
 	nombre := c.Query("nombre")
 	simbolo := c.Query("simbolo")
 
@@ -62,33 +58,35 @@ func (mh MonedaHandler) AltaMoneda(c *gin.Context) {
 		return
 	}
 
-	mh.srv.CotizarNuevaMoneda(simbolo)
+	mh.srv.CotizarNuevaMoneda(id, simbolo)
 
 	c.JSON(http.StatusOK, gin.H{"id": id})
 }
 
-// @Summary	Retorna las cotizaciones paginadas segun los filtros
-// @Tags		Moneda
-// @Accept		json
-// @Produce	json
-// @Param		monedas			query		string	true	"id de las monedas que queremos separados por espacios"
-// @Param		fecha_inicial	query		string	false	"Fecha desde la cual quiero obtener cotizaciones (YYYY-MM-DD HH:MM:SS)"	Format(date-time)
-// @Param		fecha_final		query		string	false	"Fecha hasta la cual quiero obtener cotizaciones (YYYY-MM-DD HH:MM:SS)"	Format(date-time)
-// @Param		tam_paginas		query		string	false	"El tamaño de las paginas, como maximo es 100, el default es 50"
-// @Param		pagina_inicial	query		int		false	"Pagina a partir de la cual sera retornado el query"
-// @Param		cant_paginas	query		int		false	"La cantidad de paginas, como maximo es 10, el default es 1"
-// @Param		orden			query		string	false	"Ordenar segun alguno de estos valores: fecha(default), valor, nombre"	Enum(fecha, valor, nombre)
-// @Param		orden_direccion	query		string	false	"Indica si es ascendente o descendente, el default es desdencente"				Enum(ascendente, descendente)
-// @Param		resumen			query		string	false	"Para incluir resumen indicar el valor debe ser si"															Enum(si, no)
-// @Success	200				{object}	[]Pagina
-// @Failure	400				{object}	string
-// @Router		/cotizaciones [get]
+//	@Summary	Retorna las cotizaciones paginadas segun los filtros
+//	@Tags		Moneda
+//	@Accept		json
+//	@Produce	json
+//	@Param		monedas			query		string	false	"id de las monedas que queremos separados por espacios"
+//	@Param		fecha_inicial	query		string	false	"Fecha desde la cual quiero obtener cotizaciones (YYYY-MM-DD HH:MM:SS)"	Format(date-time)
+//	@Param		fecha_final		query		string	false	"Fecha hasta la cual quiero obtener cotizaciones (YYYY-MM-DD HH:MM:SS)"	Format(date-time)
+//	@Param		tam_paginas		query		string	false	"El tamaño de las paginas, como maximo es 100, el default es 50"
+//	@Param		pagina_inicial	query		int		false	"Pagina a partir de la cual sera retornado el query"
+//	@Param		cant_paginas	query		int		false	"La cantidad de paginas, como maximo es 10, el default es 1"
+//	@Param		orden			query		string	false	"Ordenar segun alguno de estos valores: fecha(default), valor, nombre"	Enum(fecha, valor, nombre)
+//	@Param		orden_direccion	query		string	false	"Indica si es ascendente o descendente, el default es desdencente"		Enum(ascendente, descendente)
+//	@Param		usuario			query		int		false	"Usuario elegido"
+//	@Param		resumen			query		string	false	"Para incluir resumen indicar el valor debe ser si"	Enum(si, no)
+//	@Success	200				{object}	[]Pagina
+//	@Failure	400				{object}	string
+//	@Router		/cotizaciones [get]
 func (mh MonedaHandler) Cotizaciones(c *gin.Context) {
 
 	// esto nos devuelve un map de todos los query params
 	// filtros := c.Request.URL.Query()
 
 	parametrosBusqueda, err := validarParametros(c)
+	fmt.Println(parametrosBusqueda)
 	resumen := c.Query("resumen") == "si"
 
 	if err != nil {
@@ -96,7 +94,7 @@ func (mh MonedaHandler) Cotizaciones(c *gin.Context) {
 		return
 	}
 
-	cotizaciones, err := mh.srv.Cotizaciones(parametrosBusqueda)
+	cantidad, cotizaciones, err := mh.srv.Cotizaciones(parametrosBusqueda)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -106,27 +104,24 @@ func (mh MonedaHandler) Cotizaciones(c *gin.Context) {
 	body := gin.H{"cotizaciones": paginas}
 
 	if resumen {
-		body["resumen"] = crearResumen(parametrosBusqueda)
+		// TODO cambiar a resumen posta
+		body["resumen"] = mh.crearResumen(parametrosBusqueda)
+		body["cantidad_registros_posibles"] = cantidad
 	}
 
 	c.JSON(http.StatusOK, body)
 }
 
-// @Summary	Llama para que se haga la cotizacion de las monedas
-// @Tags		Moneda
-// @Accept		json
-// @Produce	json
-// @Param		Authorization	header		string	true	"Token de autorización"
-// @Param		api				query		string	true	"API que se utilizara para cotizar"
-// @Success	200				{object}	[]Pagina
-// @Failure	400				{object}	string
-// @Router		/cotizaciones [post]
+//	@Summary	Llama para que se haga la cotizacion de las monedas
+//	@Tags		Moneda
+//	@Accept		json
+//	@Produce	json
+//	@Param		Authorization	header		string	true	"Token de autorización"
+//	@Param		api				query		string	true	"API que se utilizara para cotizar"
+//	@Success	200				{object}	[]Pagina
+//	@Failure	400				{object}	string
+//	@Router		/cotizaciones [post]
 func (mh MonedaHandler) AltaCotizaciones(c *gin.Context) {
-	// TODO autenticacion
-	if err := autenticarUsuario(c); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		return
-	}
 
 	api := c.Query("api")
 	if !ApiValida(api) {
@@ -151,4 +146,58 @@ func (mh MonedaHandler) AltaCotizaciones(c *gin.Context) {
 
 func ApiValida(nombre string) bool {
 	return nombre == "Paprika" || nombre == "CoinBase"
+}
+
+//	@Summary	Crear un usuario
+//	@Tags		Moneda
+//	@Accept		json
+//	@Produce	json
+//	@Param		nombre	query		string	true	"nombre del nuevo usuario"
+//	@Success	200		{object}	string
+//	@Failure	400		{object}	string
+//	@Router		/usuario [post]
+func (mh MonedaHandler) AltaUsuario(c *gin.Context) {
+	nombre := c.Query("nombre")
+	if nombre == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Debe proporcionar un nombre de usuario"})
+		return
+	}
+
+	id, err := mh.srv.AltaUsuario(nombre)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"id": id})
+}
+
+//	@Summary	Da de baja a un usuario
+//	@Tags		Moneda
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	query		int	true	"id del usuario que se desea dar de baja"
+//	@Success	200	{object}	string
+//	@Failure	400	{object}	string
+//	@Router		/usuario [delete]
+func (mh MonedaHandler) BajaUsuario(c *gin.Context) {
+
+	idString := c.Query("id")
+	if idString == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Debe proporcionar un nombre de usuario"})
+		return
+	}
+
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "el id debe ser un numero"})
+	}
+
+	err = mh.srv.BajaUsuario(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, "El usuario se elimino correctamente")
 }
