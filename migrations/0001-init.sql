@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS criptomoneda (
 CREATE TABLE IF NOT EXISTS usuario (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL UNIQUE,
+    activo BOOLEAN,
 );
 
 -- Crear la tabla 'usuario_criptomoneda' para la relación entre 'usuario' y 'criptomoneda'

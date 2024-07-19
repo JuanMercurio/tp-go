@@ -1,4 +1,11 @@
 definitions:
+  domain.Usuario:
+    properties:
+      id:
+        type: integer
+      nombre:
+        type: string
+    type: object
   ports.MonedaOutputDTO:
     properties:
       id:
@@ -158,7 +165,7 @@ paths:
       summary: Da de alta una moneda
       tags:
       - Moneda
-  /usuario:
+  /usuarios:
     delete:
       consumes:
       - application/json
@@ -182,6 +189,25 @@ paths:
       summary: Da de baja a un usuario
       tags:
       - Moneda
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Usuario'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Lista de usuario registrados
+      tags:
+      - Moneda
     post:
       consumes:
       - application/json
@@ -203,6 +229,32 @@ paths:
           schema:
             type: string
       summary: Crear un usuario
+      tags:
+      - Moneda
+  /usuarios/{id}/monedas:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id del usuario
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ports.MonedaOutputDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Listar las monedas preferidas de un usuario
       tags:
       - Moneda
 swagger: "2.0"

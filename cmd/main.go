@@ -29,15 +29,18 @@ func main() {
 	}
 
 	repoMonedas := repos.CrearRepositorioMoneda(clienteSQL)
+	repoUsuarios := repos.CrearRepositorioUsuario(clienteSQL)
 
 	paprikaAPI := paprika.Crear(&config.Apis.Paprika)
 	coinbaseAPI := coinbase.Crear(&config.Apis.CoinBase)
 
-	servicio := servicios.CrearServicioMoneda(repoMonedas, paprikaAPI, coinbaseAPI)
+	servicioMoneda := servicios.CrearServicioMoneda(repoMonedas, paprikaAPI, coinbaseAPI)
+	servicioUsuario := servicios.CrearServicioUsuario(repoUsuarios)
 
-	handlerMoneda := handlers.CrearHandlerMoneda(servicio)
+	handlerMoneda := handlers.CrearHandlerMoneda(servicioMoneda)
+	handlerUsuario := handlers.CrearHandlerUsuario(servicioUsuario)
 
-	server := http_server.Config(handlerMoneda)
+	server := http_server.Config(handlerMoneda, handlerUsuario)
 
 	server.Start()
 

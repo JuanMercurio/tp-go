@@ -17,7 +17,6 @@ func QueryBaseCotizaciones(p ports.Filter) queryBuilder {
 	sentencia.From = "FROM cotizacion"
 
 	if len(p.Monedas) > 0 {
-		fmt.Println(len(p.Monedas), "-----------------")
 		monedas := strings.Join(p.Monedas, ",")
 		sentencia.AddWhere("id_criptomoneda IN (" + monedas + ")")
 	}

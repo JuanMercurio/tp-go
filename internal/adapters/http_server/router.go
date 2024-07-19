@@ -13,19 +13,23 @@ type Router struct {
 	*gin.Engine
 }
 
-func Config(h *handlers.MonedaHandler) Router {
+func Config(mh *handlers.MonedaHandler, uh *handlers.UsuarioHandler) Router {
 
 	router := gin.Default()
 
-	router.POST("/monedas", handlers.Autenticar, h.AltaMoneda)
-	router.POST("/cotizaciones", handlers.Autenticar, h.AltaCotizaciones)
+	router.GET("/usuarios", uh.BuscarUsuarios)
+	router.POST("/usuarios", uh.AltaUsuario)
+	router.DELETE("/usuarios", uh.BajaUsuario)
 
-	router.POST("/usuario", h.AltaUsuario)
-	router.DELETE("/usuario", h.BajaUsuario)
+	router.GET("/usuarios/:id/monedas", mh.MonedasDeUsuario)
 
-	router.GET("/monedas", h.BuscarTodos)
-	router.GET("/cotizaciones", h.Cotizaciones)
+	router.GET("/monedas", mh.BuscarMonedas)
+	router.GET("/cotizaciones", mh.Cotizaciones)
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+
+	router.Use(handlers.Autenticar)
+	router.POST("/monedas", mh.AltaMoneda)
+	router.POST("/cotizaciones", mh.AltaCotizaciones)
 
 	return Router{router}
 }

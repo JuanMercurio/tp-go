@@ -3,8 +3,6 @@ package repos
 import (
 	"database/sql"
 	"fmt"
-	"strings"
-	"time"
 
 	"github.com/juanmercurio/tp-go/internal/core/domain"
 	"github.com/juanmercurio/tp-go/internal/ports"
@@ -81,11 +79,9 @@ func (r RepositorioMoneda) Cotizaciones(parametros ports.Filter) (int, []domain.
 
 	//TODO modularizar este codigo
 	q := QueryBaseCotizaciones(parametros)
-	fmt.Println(q.toString())
 
 	q.Select = "SELECT COUNT(*)"
 	var cantidad int
-	fmt.Println(q.toString())
 
 	err := r.db.QueryRow(q.toString()).Scan(&cantidad)
 	if err != nil {
@@ -95,7 +91,6 @@ func (r RepositorioMoneda) Cotizaciones(parametros ports.Filter) (int, []domain.
 	q.Select = "SELECT cotizacion.id_criptomoneda, fecha, valor, api"
 	q.AddLimit(parametros.TamPaginas * parametros.CantPaginas)
 	q.AddOffset(parametros.PaginaInicial)
-	fmt.Println(q.toString())
 
 	rows, err := r.db.Query(q.toString())
 	if err != nil {
@@ -108,127 +103,31 @@ func (r RepositorioMoneda) Cotizaciones(parametros ports.Filter) (int, []domain.
 	return cantidad, cotizaciones, nil
 }
 
-// esto no va
+func (r RepositorioMoneda) MonedasDeUsuario(id int) ([]domain.Criptomoneda, error) {
 
-// polemico porque hace este insert por ejemplo
-// INSERT INTO go.cotizacion (id_criptomoneda,fecha,  valor)
-// VALUES ((SELECT id FROM go.criptomoneda where simbolo = "BTC"),"2024-07-15 23:34:56", 64581.195000)
-func (r RepositorioMoneda) InsertarCotizacionesSegunSimbolo(c []ports.Cotizacion) error {
-	queryBase := "INSERT INTO go.cotizacion (id_criptomoneda,fecha,  valor) VALUES "
-	for _, cotizacion := range c {
-		queryBase += fmt.Sprintf(`((SELECT id FROM go.criptomoneda where simbolo = "%s"),"%s", %f),`,
-			cotizacion.Simbolo,
-			time.Now().Format("2006-01-02 15:04:05"),
-			cotizacion.Valor)
+	var builder queryBuilder
+	builder.Select = "SELECT criptomoneda.id, criptomoneda.nombre, criptomoneda.simbolo"
+	builder.From = "FROM criptomoneda"
+	builder.AddJoin("usuario_criptomoneda", "criptomoneda.id = usuario_criptomoneda.id_criptomoneda")
+	builder.AddWhere("usuario_criptomoneda.id_usuario = ?")
 
-	}
-	query := strings.TrimSuffix(queryBase, ",")
+	query := builder.toString()
 
-	_, err := r.db.Exec(query)
+	rows, err := r.db.Query(query, id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
-}
-
-func (r RepositorioMoneda) AltaCotizaciones(cotizaciones []domain.Cotizacion) error {
-	converter := func(c any) []any {
-		var columnas []any
-		cotizacion := c.(domain.Cotizacion)
-		columnas = append(columnas, any(cotizacion.Moneda.ID))
-		columnas = append(columnas, any(cotizacion.Time))
-		columnas = append(columnas, any(cotizacion.Valor))
-		return columnas
-	}
-
-	cotizacionesAny := make([]any, len(cotizaciones))
-	for i, c := range cotizaciones {
-		cotizacionesAny[i] = any(c)
-	}
-
-	err := r.AltaMasivaCustomColumns("go.cotizacion", "id_criptomoneda, fecha, valor", cotizacionesAny, converter)
-	if err != nil {
-		return fmt.Errorf("error en el alta de la cotizacion: %w", err)
-	}
-
-	return nil
-}
-
-func (r RepositorioMoneda) AltaMasivaCustomColumns(tabla string, columnas string, data []any, columns func(any) []any) error {
-	var valores []string
-	for range strings.Split(columnas, " ") {
-		valores = append(valores, "?")
-	}
-
-	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tabla, columnas, strings.Join(valores, ","))
-	stmt, err := r.db.Prepare(query)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	tx, err := r.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			err = tx.Commit()
-			if err != nil {
-			}
-		}
-	}()
-
-	for _, row := range data {
-		_, err := stmt.Exec(columns(row)...)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (r RepositorioMoneda) Simbolos() []string {
-	query := "SELECT simbolo FROM go.criptomoneda"
-	rows, err := r.db.Query(query)
-	if err != nil {
-		return nil
-	}
 	defer rows.Close()
 
-	var simbolos []string
-
+	var moneda domain.Criptomoneda
+	var monedas []domain.Criptomoneda
 	for rows.Next() {
-		var simbolo string
-		if err := rows.Scan(&simbolo); err != nil {
-			return nil
+		if err := rows.Scan(&moneda.ID, &moneda.Nombre, &moneda.Simbolo); err != nil {
+			return nil, err
 		}
-		simbolos = append(simbolos, simbolo)
+		monedas = append(monedas, moneda)
 	}
 
-	return simbolos
-}
-
-func (r RepositorioMoneda) AltaUsuario(usuario domain.Usuario) (int, error) {
-	query := "INSERT INTO usuario  (nombre, activo ) VALUES ( ?, true)"
-	return r.darDeAltaEntidad(query, usuario.Nombre)
-}
-
-// esta es una baja de usuario logica
-func (r RepositorioMoneda) BajaUsuario(id int) error {
-	query := "UPDATE usuario SET activo = false  where id = ?"
-	_, err := r.db.Query(query, id)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r RepositorioMoneda) BajaUsuarioEliminando(id int) error {
-	//TODO
-	return nil
+	return monedas, nil
 }

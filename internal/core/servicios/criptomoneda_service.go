@@ -3,7 +3,6 @@ package servicios
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -31,7 +30,6 @@ func (s MonedaServicio) AltaMoneda(moneda, simbolo string) (int, error) {
 
 	for nombre, cotizador := range s.cotizadores {
 
-		fmt.Println("Estoy en el cotizador", nombre)
 		existe, err := cotizador.ExisteMoneda(simbolo)
 		if err != nil {
 			return 0, fmt.Errorf("error al verificar si la moneda existe: %w", err)
@@ -212,18 +210,23 @@ func (s MonedaServicio) obtenerMonedas(filtros ports.Filter) []ports.MonedaOutpu
 	return nil
 }
 
-func (s MonedaServicio) AltaUsuario(nombre string) (int, error) {
-	id, err := s.repo.AltaUsuario(domain.CrearUsuario(nombre))
-	if err != nil {
-		if strings.Contains(err.Error(), "Duplicate") {
-			return 0, fmt.Errorf("el usuario ya existe")
+func (s MonedaServicio) MonedasDeUsuario(id int) ([]ports.MonedaOutputDTO, error) {
+	monedas, _ := s.repo.MonedasDeUsuario(id)
+
+	var output []ports.MonedaOutputDTO
+
+	for _, moneda := range monedas {
+
+		monedaOutput := ports.MonedaOutputDTO{
+			Id:           moneda.ID,
+			NombreMoneda: moneda.Nombre,
+			Simbolo:      moneda.Simbolo,
 		}
 
-		return 0, err
-	}
-	return id, nil
-}
+		output = append(output, monedaOutput)
 
-func (s MonedaServicio) BajaUsuario(id int) error {
-	return s.repo.BajaUsuario(id)
+	}
+
+	return output, nil
+
 }

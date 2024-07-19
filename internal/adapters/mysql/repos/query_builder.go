@@ -42,6 +42,9 @@ func (s *queryBuilder) AddOrderBy(orden string) {
 }
 
 func (s queryBuilder) orderByString() string {
+	if len(s.OrderBy) == 0 {
+		return ""
+	}
 	return "ORDER BY " + strings.Join(s.OrderBy, ",")
 }
 

@@ -59,8 +59,12 @@ INSERT INTO cotizacion (id_criptomoneda, fecha, valor, api) VALUES
         (5, '2024-07-10 12:00:00', 1.09, 'CoinBase');
 
 
-INSERT INTO usuario (nombre) VALUES 
-'diego', 'juan', 'santi', 'tom', 'messi';
+INSERT INTO usuario (nombre, activo) VALUES 
+('diego', TRUE),
+('juan', TRUE),
+('santi', TRUE),
+('tom', TRUE),
+('messi', TRUE);
 
 -- Agregar registros a la tabla 'usuario_criptomoneda'
 INSERT INTO usuario_criptomoneda (id_usuario, id_criptomoneda) VALUES
