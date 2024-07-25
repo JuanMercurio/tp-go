@@ -15,6 +15,162 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/cotizacion": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cotizacion"
+                ],
+                "summary": "Usuario hace cotizacion de moneda manualmente",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Usuario que cotizara",
+                        "name": "id-usuario",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Simbolo de la moneda que cotizara",
+                        "name": "simbolo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Valor que cotizara",
+                        "name": "precio",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Fecha de la cotizacion",
+                        "name": "fecha",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cotizacion/{id}": {
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cotizacion"
+                ],
+                "summary": "Usuario elimina cotizacion de moneda manualmente",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Usuario que elimina",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "cotizacion a eliminar",
+                        "name": "id-cotizacion",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cotizacion"
+                ],
+                "summary": "Usuario cambia cotizacion de moneda manualmente",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id de cotizacion",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuario que hace los cambios",
+                        "name": "id-usuario",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Usuario que hace los cambios",
+                        "name": "cambios",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ports.Patch"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/cotizaciones": {
             "get": {
                 "consumes": [
@@ -24,13 +180,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moneda"
+                    "Cotizacion"
                 ],
                 "summary": "Retorna las cotizaciones paginadas segun los filtros",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id de las monedas que queremos separados por espacios",
+                        "description": "simbolos de las monedas que queremos separados por espacios",
                         "name": "monedas",
                         "in": "query"
                     },
@@ -62,7 +218,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "La cantidad de paginas, como maximo es 10, el default es 1",
+                        "description": "La cantidad de paginas, como maximo es 10, el default es 10",
                         "name": "cant_paginas",
                         "in": "query"
                     },
@@ -118,7 +274,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moneda"
+                    "Cotizacion"
                 ],
                 "summary": "Llama para que se haga la cotizacion de las monedas",
                 "parameters": [
@@ -239,7 +395,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moneda"
+                    "Usuarios"
                 ],
                 "summary": "Lista de usuario registrados",
                 "responses": {
@@ -268,14 +424,56 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moneda"
+                    "Usuarios"
                 ],
                 "summary": "Crear un usuario",
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "nombre de usuario elegido",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "nombre del nuevo usuario",
                         "name": "nombre",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "apellido del nuevo usuario",
+                        "name": "apellido",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "email del nuevo usuario",
+                        "name": "email",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "dni | cedula | pasaporte",
+                        "name": "tipo_documento",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "identificador de documento elegido",
+                        "name": "documento_numero",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "formato YYYY-MM-DD HH:MM:SS",
+                        "name": "fecha_nacimiento",
                         "in": "query",
                         "required": true
                     }
@@ -303,7 +501,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moneda"
+                    "Usuarios"
                 ],
                 "summary": "Da de baja a un usuario",
                 "parameters": [
@@ -331,35 +529,42 @@ const docTemplate = `{
                 }
             }
         },
-        "/usuarios/{id}/monedas": {
-            "get": {
+        "/usuarios/{id}": {
+            "patch": {
+                "description": "Actualiza parcialmente un usuario por su ID",
                 "consumes": [
                     "application/json"
                 ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
-                    "Moneda"
+                    "Usuarios"
                 ],
-                "summary": "Listar las monedas preferidas de un usuario",
+                "summary": "Actualizar atributos de usuario",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "id del usuario",
+                        "description": "ID del usuario a actualizar",
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Datos de actualización en JSON",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ports.Patch"
+                            }
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ports.MonedaOutputDTO"
-                            }
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -373,13 +578,72 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "domain.Usuario": {
+        "domain.Criptomoneda": {
             "type": "object",
             "properties": {
                 "id": {
                     "type": "integer"
                 },
+                "simbolo": {
+                    "type": "string"
+                },
+                "string": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.Documento": {
+            "type": "object",
+            "properties": {
+                "numero": {
+                    "type": "string"
+                },
+                "tipo": {
+                    "$ref": "#/definitions/domain.TipoDocumento"
+                }
+            }
+        },
+        "domain.TipoDocumento": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "DNI",
+                "Cedula",
+                "Pasaporte"
+            ]
+        },
+        "domain.Usuario": {
+            "type": "object",
+            "properties": {
+                "apellido": {
+                    "type": "string"
+                },
+                "documento": {
+                    "$ref": "#/definitions/domain.Documento"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "fechaDeNacimiento": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "monedasInteres": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Criptomoneda"
+                    }
+                },
                 "nombre": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -396,6 +660,18 @@ const docTemplate = `{
                 "simbolo": {
                     "type": "string"
                 }
+            }
+        },
+        "ports.Patch": {
+            "type": "object",
+            "properties": {
+                "op": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "value": {}
             }
         }
     }

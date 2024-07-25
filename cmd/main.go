@@ -35,7 +35,7 @@ func main() {
 	coinbaseAPI := coinbase.Crear(&config.Apis.CoinBase)
 
 	servicioMoneda := servicios.CrearServicioMoneda(repoMonedas, paprikaAPI, coinbaseAPI)
-	servicioUsuario := servicios.CrearServicioUsuario(repoUsuarios)
+	servicioUsuario := servicios.CrearServicioUsuario(repoUsuarios, repoMonedas)
 
 	handlerMoneda := handlers.CrearHandlerMoneda(servicioMoneda)
 	handlerUsuario := handlers.CrearHandlerUsuario(servicioUsuario)

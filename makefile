@@ -1,3 +1,7 @@
+
+.DEFAULT_GOAL:= vet
+.PHONY: fmt run build mock dev air
+
 DIRBIN=bin/
 BIN=$(DIRBIN)app
 MAIN=cmd/main.go
@@ -21,6 +25,11 @@ run:
 clean:
 	rm -fr $(DIRBIN)
 
+mock:
+	go generate ./...
 
-.DEFAULT_GOAL := vet
-.PHONY := fmt run build
+test: 
+	go test ./...
+
+dev:
+	~/go/bin/air -c .air.toml

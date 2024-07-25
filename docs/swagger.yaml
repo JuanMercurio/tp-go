@@ -1,9 +1,49 @@
 definitions:
-  domain.Usuario:
+  domain.Criptomoneda:
     properties:
       id:
         type: integer
+      simbolo:
+        type: string
+      string:
+        type: string
+    type: object
+  domain.Documento:
+    properties:
+      numero:
+        type: string
+      tipo:
+        $ref: '#/definitions/domain.TipoDocumento'
+    type: object
+  domain.TipoDocumento:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - DNI
+    - Cedula
+    - Pasaporte
+  domain.Usuario:
+    properties:
+      apellido:
+        type: string
+      documento:
+        $ref: '#/definitions/domain.Documento'
+      email:
+        type: string
+      fechaDeNacimiento:
+        type: string
+      id:
+        type: integer
+      monedasInteres:
+        items:
+          $ref: '#/definitions/domain.Criptomoneda'
+        type: array
       nombre:
+        type: string
+      username:
         type: string
     type: object
   ports.MonedaOutputDTO:
@@ -15,17 +55,129 @@ definitions:
       simbolo:
         type: string
     type: object
+  ports.Patch:
+    properties:
+      op:
+        type: string
+      path:
+        type: string
+      value: {}
+    type: object
 info:
   contact: {}
   description: API en la cual podemos consultar cotizaciones de diferentes monedas
   title: Criptomoneda API
 paths:
+  /cotizacion:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Usuario que cotizara
+        in: query
+        name: id-usuario
+        required: true
+        type: string
+      - description: Simbolo de la moneda que cotizara
+        in: query
+        name: simbolo
+        required: true
+        type: string
+      - description: Valor que cotizara
+        in: query
+        name: precio
+        required: true
+        type: string
+      - description: Fecha de la cotizacion
+        in: query
+        name: fecha
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Usuario hace cotizacion de moneda manualmente
+      tags:
+      - Cotizacion
+  /cotizacion/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Usuario que elimina
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: cotizacion a eliminar
+        in: query
+        name: id-cotizacion
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Usuario elimina cotizacion de moneda manualmente
+      tags:
+      - Cotizacion
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id de cotizacion
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Usuario que hace los cambios
+        in: query
+        name: id-usuario
+        required: true
+        type: string
+      - description: Usuario que hace los cambios
+        in: body
+        name: cambios
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/ports.Patch'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Usuario cambia cotizacion de moneda manualmente
+      tags:
+      - Cotizacion
   /cotizaciones:
     get:
       consumes:
       - application/json
       parameters:
-      - description: id de las monedas que queremos separados por espacios
+      - description: simbolos de las monedas que queremos separados por espacios
         in: query
         name: monedas
         type: string
@@ -47,7 +199,7 @@ paths:
         in: query
         name: pagina_inicial
         type: integer
-      - description: La cantidad de paginas, como maximo es 10, el default es 1
+      - description: La cantidad de paginas, como maximo es 10, el default es 10
         in: query
         name: cant_paginas
         type: integer
@@ -84,7 +236,7 @@ paths:
             type: string
       summary: Retorna las cotizaciones paginadas segun los filtros
       tags:
-      - Moneda
+      - Cotizacion
     post:
       consumes:
       - application/json
@@ -115,7 +267,7 @@ paths:
             type: string
       summary: Llama para que se haga la cotizacion de las monedas
       tags:
-      - Moneda
+      - Cotizacion
   /monedas:
     get:
       consumes:
@@ -188,7 +340,7 @@ paths:
             type: string
       summary: Da de baja a un usuario
       tags:
-      - Moneda
+      - Usuarios
     get:
       consumes:
       - application/json
@@ -207,14 +359,44 @@ paths:
             type: string
       summary: Lista de usuario registrados
       tags:
-      - Moneda
+      - Usuarios
     post:
       consumes:
       - application/json
       parameters:
+      - description: nombre de usuario elegido
+        in: query
+        name: username
+        required: true
+        type: string
       - description: nombre del nuevo usuario
         in: query
         name: nombre
+        required: true
+        type: string
+      - description: apellido del nuevo usuario
+        in: query
+        name: apellido
+        required: true
+        type: string
+      - description: email del nuevo usuario
+        in: query
+        name: email
+        required: true
+        type: string
+      - description: dni | cedula | pasaporte
+        in: query
+        name: tipo_documento
+        required: true
+        type: string
+      - description: identificador de documento elegido
+        in: query
+        name: documento_numero
+        required: true
+        type: string
+      - description: formato YYYY-MM-DD HH:MM:SS
+        in: query
+        name: fecha_nacimiento
         required: true
         type: string
       produces:
@@ -230,31 +412,36 @@ paths:
             type: string
       summary: Crear un usuario
       tags:
-      - Moneda
-  /usuarios/{id}/monedas:
-    get:
+      - Usuarios
+  /usuarios/{id}:
+    patch:
       consumes:
       - application/json
+      description: Actualiza parcialmente un usuario por su ID
       parameters:
-      - description: id del usuario
+      - description: ID del usuario a actualizar
         in: path
         name: id
         required: true
         type: integer
-      produces:
-      - application/json
+      - description: Datos de actualización en JSON
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/ports.Patch'
+          type: array
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/ports.MonedaOutputDTO'
-            type: array
+            type: string
         "400":
           description: Bad Request
           schema:
             type: string
-      summary: Listar las monedas preferidas de un usuario
+      summary: Actualizar atributos de usuario
       tags:
-      - Moneda
+      - Usuarios
 swagger: "2.0"

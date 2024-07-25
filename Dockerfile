@@ -5,14 +5,21 @@ WORKDIR /build
 COPY . .
 
 RUN go build -o app cmd/main.go
+RUN rm .env
+RUN mv .env-semideploy .env
 
-FROM scratch
+CMD ["/build/app"]
 
-WORKDIR /app
-
-COPY --from=build /build/.env-deploy /app/.env
-COPY --from=build /build/internal/adapters/config/apis_config.json /app/api_config.json
-COPY --from=build /build/app /app
-
-# analizar si usamos CMD
-ENTRYPOINT ["/app"]
+# FROM scratch
+# FROM alpine
+#
+# WORKDIR /deploy
+#
+# COPY --from=build /build/.env-deploy .env
+# COPY --from=build /build/internal/adapters/config/apis_config.json api_config.json
+# COPY --from=build /build/app .
+#
+# RUN chmod 777 app
+#
+# # analizar si usamos CMD
+# CMD ["sh"]

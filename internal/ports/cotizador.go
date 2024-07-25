@@ -1,3 +1,4 @@
+//go:generate  /home/feb/go/bin/mockgen  --destination=./mock/cotizador.go github.com/juanmercurio/tp-go/internal/ports Cotizador
 package ports
 
 type Cotizacion struct {

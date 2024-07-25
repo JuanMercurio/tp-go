@@ -1,8 +1,10 @@
 package servicios
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -183,50 +185,107 @@ func (s MonedaServicio) CotizarNuevaMoneda(id int, simbolo string) error {
 	return nil
 }
 
-func (s MonedaServicio) CrearResumen(filtros ports.Filter) ports.Resumen {
+func (s MonedaServicio) Resumen(filtros ports.Filter) (ports.Resumen, error) {
+	monedasString, fechaString, err := s.repo.Resumen(filtros)
+	if err != nil {
+		return ports.Resumen{}, err
+	}
 
-	// var resumen ports.Resumen
-	// resumen.FechaFinal = obtenerFechaFinal(filtros)
-	// resumen.FechaInicial = obtenerFechaInicial(filtros)
-	// resumen.Monedas = obtenerMonedas(filtros)
-	return ports.Resumen{}
+	fmt.Println(fechaString)
 
+	f, err := stringAFechasResumen(fechaString)
+	if err != nil {
+		return ports.Resumen{}, err
+	}
+
+	m, err := stringAMapMonedasResumen(monedasString)
+	if err != nil {
+		return ports.Resumen{}, err
+	}
+
+	r := make(ports.Resumen)
+	r["fechas"] = f
+	r["monedas"] = m
+
+	return r, nil
 }
 
-func (s MonedaServicio) obtenerFechaFinal(filtros ports.Filter) time.Time {
-	// if filtros.FechaFinal.IsZero() {
-	// 	return s.repo.GetAgregatte(filtros, "min", )
-	// }
-	return time.Time{}
+func stringAMapMonedasResumen(monedasString string) (map[string]int, error) {
+	var data []string
 
+	if err := json.Unmarshal([]byte(monedasString), &data); err != nil {
+		return nil, err
+	}
+
+	m := make(map[string]int)
+	for _, value := range data {
+		if _, ok := m[value]; !ok {
+			m[value] = 1
+		} else {
+			m[value]++
+		}
+	}
+
+	return m, nil
 }
 
-func (s MonedaServicio) obtenerFechaInicial(filtros ports.Filter) time.Time {
-	return time.Time{}
-
+func stringAFechasResumen(fechaString string) (map[string]any, error) {
+	var fechas map[string]any
+	if err := json.Unmarshal([]byte(fechaString), &fechas); err != nil {
+		return nil, err
+	}
+	return fechas, nil
 }
 
-func (s MonedaServicio) obtenerMonedas(filtros ports.Filter) []ports.MonedaOutputDTO {
+func (s MonedaServicio) SimboloValido(simbolo string) error {
+	return s.repo.SimboloValido(simbolo)
+}
+
+func (s MonedaServicio) SimbolosValido(simbolos []string) error {
+	return s.repo.SimbolosValido(simbolos)
+}
+
+func (s MonedaServicio) CotizarManualmente(simbolo string, fecha time.Time, precio float64) error {
+
+	ids, err := s.repo.IdsDeSimbolos(strings.Split(simbolo, " "))
+	if err != nil {
+		return err
+	}
+
+	moneda, err := s.repo.BuscarPorId(ids[0])
+	if err != nil {
+		return err
+	}
+
+	cotizacion := domain.Cotizacion{
+		Valor:  precio,
+		Time:   fecha,
+		Moneda: moneda,
+		Api:    "manual",
+	}
+
+	_, err = s.AltaCotizacion(cotizacion)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (s MonedaServicio) MonedasDeUsuario(id int) ([]ports.MonedaOutputDTO, error) {
-	monedas, _ := s.repo.MonedasDeUsuario(id)
+func (s MonedaServicio) BajaCotizacionManual(id int) error {
+	return s.repo.BajaCotizacionManual(id)
+}
 
-	var output []ports.MonedaOutputDTO
+func (s MonedaServicio) PatchCotizacion(idUsuario int, idCotizacion int, patchs []ports.Patch) error {
 
-	for _, moneda := range monedas {
-
-		monedaOutput := ports.MonedaOutputDTO{
-			Id:           moneda.ID,
-			NombreMoneda: moneda.Nombre,
-			Simbolo:      moneda.Simbolo,
-		}
-
-		output = append(output, monedaOutput)
-
+	m := make(map[string]any)
+	for _, patch := range patchs {
+		m[patch.Path] = patch.NuevoValor
 	}
 
-	return output, nil
+	if err := s.repo.ActualizarCotizacionMap(idUsuario, idCotizacion, m); err != nil {
+		return err
+	}
 
+	return nil
 }

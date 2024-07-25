@@ -26,10 +26,16 @@ type Filter struct {
 	Usuario       int
 }
 
-type Resumen struct {
-	FechaInicial time.Time
-	FechaFinal   time.Time
-	Monedas      []MonedaOutputDTO
+type Resumen map[string]any
+
+type AltaUsuarioParams struct {
+	Username          string
+	Nombre            string
+	Apellido          string
+	FechaDeNacimiento time.Time
+	Documento         string
+	TipoDocumento     string
+	Email             string
 }
 
 func (o Orden) TipoToString() string {

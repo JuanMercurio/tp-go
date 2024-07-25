@@ -8,12 +8,15 @@ services:
     ports:
       - "33306:3306"
     volumes:
-      # TODO: encontrar mejor lugar para esto
       - "../mysql-volume:/var/lib/mysql"
-  app:
-    image: monedas 
-    container_name: monedas_container
-    ports:
-      - "8080:8080"
-    depends_on:
-      - mysql
+      - "./mysql-config:/etc/mysql/conf.d"
+
+  # app:
+  #   image: monedas
+  #   container_name: monedas_container
+  #   ports:
+  #     - "8080:8080"
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - mysql
+

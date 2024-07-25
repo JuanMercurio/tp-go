@@ -11,14 +11,20 @@ import (
 	"github.com/juanmercurio/tp-go/internal/ports"
 )
 
+// crea la query sin el select
 func QueryBaseCotizaciones(p ports.Filter) queryBuilder {
 
 	var sentencia queryBuilder
 	sentencia.From = "FROM cotizacion"
 
 	if len(p.Monedas) > 0 {
-		monedas := strings.Join(p.Monedas, ",")
-		sentencia.AddWhere("id_criptomoneda IN (" + monedas + ")")
+		// todo funcion aparte
+		var simbolosConQuotes []string
+		for _, moneda := range p.Monedas {
+			simbolosConQuotes = append(simbolosConQuotes, "'"+moneda+"'")
+		}
+		simbolos := strings.Join(simbolosConQuotes, ",")
+		sentencia.AddWhere("criptomoneda.simbolo IN (" + simbolos + ")")
 	}
 
 	if !p.FechaInicial.IsZero() {
@@ -37,6 +43,7 @@ func QueryBaseCotizaciones(p ports.Filter) queryBuilder {
 	}
 
 	sentencia.AddOrderBy(ordenToString(p.Orden))
+	sentencia.AddJoin("criptomoneda", "cotizacion.id_criptomoneda = criptomoneda.id")
 
 	return sentencia
 }

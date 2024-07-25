@@ -20,11 +20,15 @@ func Config(mh *handlers.MonedaHandler, uh *handlers.UsuarioHandler) Router {
 	router.GET("/usuarios", uh.BuscarUsuarios)
 	router.POST("/usuarios", uh.AltaUsuario)
 	router.DELETE("/usuarios", uh.BajaUsuario)
+	router.PATCH("/usuarios/:id", uh.ActualizarUsuario)
 
-	router.GET("/usuarios/:id/monedas", mh.MonedasDeUsuario)
+	router.POST("/cotizacion", mh.AltaCotizacionManual)
+	router.DELETE("/cotizacion/:id", mh.BajaCotizacion)
+	router.PATCH("/cotizacion/:id", mh.ActualizarCotizacion)
 
 	router.GET("/monedas", mh.BuscarMonedas)
 	router.GET("/cotizaciones", mh.Cotizaciones)
+
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	router.Use(handlers.Autenticar)

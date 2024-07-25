@@ -29,8 +29,10 @@ func validarParametros(c *gin.Context) (ports.Filter, error) {
 
 	orden := validarOrden(c.Query("orden"), c.Query("orden_direccion"))
 
-	///TODO falta validar el valor de retorno de error
-	paginaInicial, _ := strconv.Atoi(c.DefaultQuery("pagina_inicial", "1"))
+	paginaInicial, err := strconv.Atoi(c.DefaultQuery("pagina_inicial", "1"))
+	if err != nil {
+		return ports.Filter{}, fmt.Errorf("la pagina inicial debe ser un entero: %w", err)
+	}
 	paginaInicial--
 
 	usuarioId, err := strconv.Atoi(c.DefaultQuery("usuario", "0"))
@@ -88,14 +90,14 @@ func validarFechas(fechaInicial string, fechaFinal string) (time.Time, time.Time
 	var err error
 
 	if fechaFinal != "" {
-		fechaFinalValida, err = validarFecha(fechaFinal)
+		fechaFinalValida, err = stringAFecha(fechaFinal)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("error de validacion de fecha_inicial:  %w", err))
 		}
 	}
 
 	if fechaFinal != "" {
-		fechaFinalValida, err = validarFecha(fechaFinal)
+		fechaFinalValida, err = stringAFecha(fechaFinal)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("error de validacion de fecha_final:  %w", err))
 		}
@@ -124,7 +126,7 @@ func rangoValido(inicial, final time.Time) bool {
 	return true
 }
 
-func validarFecha(fechaObtenida string) (time.Time, error) {
+func stringAFecha(fechaObtenida string) (time.Time, error) {
 
 	fecha, err := time.Parse("2006-01-02 15:04:05", fechaObtenida)
 	if err != nil {
