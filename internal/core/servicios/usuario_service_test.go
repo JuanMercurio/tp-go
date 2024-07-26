@@ -16,58 +16,95 @@ import (
 
 func TestAltaUsuario_Success(t *testing.T) {
 
-	var params ports.AltaUsuarioParams
-	usuario := CrearUsuario(params)
+	params := ports.AltaUsuarioParams{
+		Username:          "username",
+		Nombre:            "nombre",
+		Apellido:          "apellido",
+		FechaDeNacimiento: time.Now(),
+		Documento:         "documento",
+		TipoDocumento:     "DNI",
+		Email:             "email",
+	}
 
 	ctrl := gomock.NewController(t)
 	ru := mock_ports.NewMockRepositorioUsuarios(ctrl)
-	ru.EXPECT().AltaUsuario(usuario).AnyTimes().Return(usuario.Id, nil)
+	ru.EXPECT().AltaUsuario(gomock.Any()).AnyTimes().Return(1, nil)
 
 	id, err := CrearServicioUsuario(ru, nil).AltaUsuario(params)
 	assert.Nil(t, err)
-	assert.Equal(t, id, usuario.Id)
+	assert.Equal(t, id, 1)
 }
 
 func TestAltaUsuario_Fail(t *testing.T) {
 
-	var params ports.AltaUsuarioParams
-	usuario := CrearUsuario(params)
+	paramsValidos := ports.AltaUsuarioParams{
+		Username:          "username",
+		Nombre:            "nombre",
+		Apellido:          "apellido",
+		FechaDeNacimiento: time.Now(),
+		Documento:         "documento",
+		TipoDocumento:     "DNI",
+		Email:             "email",
+	}
 
 	ErrOtro := errors.New("otro error")
 
 	testCases := []struct {
 		name        string
+		params      ports.AltaUsuarioParams
 		useCase     *UsuarioServicio
 		expectedErr error
 	}{
 		{
-			name: "Error cuando ya existe el mail",
+			name: "Error de tipo de dni incorrecto",
+			params: ports.AltaUsuarioParams{
+				Username:          "username",
+				Nombre:            "nombre",
+				Apellido:          "apellido",
+				FechaDeNacimiento: time.Now(),
+				Documento:         "documento",
+				TipoDocumento:     "mal tipo dni",
+				Email:             "email",
+			},
 			useCase: func() *UsuarioServicio {
 				ctrl := gomock.NewController(t)
 				ru := mock_ports.NewMockRepositorioUsuarios(ctrl)
-				ru.EXPECT().AltaUsuario(usuario).AnyTimes().Return(0, fmt.Errorf("email duplicado"))
+
+				return CrearServicioUsuario(ru, nil)
+			}(),
+			expectedErr: domain.ErrTipoDocumentoInexistente,
+		},
+		{
+			name:   "Error cuando ya existe el mail",
+			params: paramsValidos,
+			useCase: func() *UsuarioServicio {
+				ctrl := gomock.NewController(t)
+				ru := mock_ports.NewMockRepositorioUsuarios(ctrl)
+				ru.EXPECT().AltaUsuario(gomock.Any()).AnyTimes().Return(0, fmt.Errorf("email duplicado"))
 
 				return CrearServicioUsuario(ru, nil)
 			}(),
 			expectedErr: ErrDuplicateMail,
 		},
 		{
-			name: "Error el usuario ya existe",
+			name:   "Error el usuario ya existe",
+			params: paramsValidos,
 			useCase: func() *UsuarioServicio {
 				ctrl := gomock.NewController(t)
 				ru := mock_ports.NewMockRepositorioUsuarios(ctrl)
-				ru.EXPECT().AltaUsuario(usuario).Return(0, fmt.Errorf("username duplicado"))
+				ru.EXPECT().AltaUsuario(gomock.Any()).Return(0, fmt.Errorf("username duplicado"))
 
 				return CrearServicioUsuario(ru, nil)
 			}(),
 			expectedErr: ErrDuplicateUserName,
 		},
 		{
-			name: "Error inesperado de alta de usuario",
+			name:   "Error inesperado de alta de usuario",
+			params: paramsValidos,
 			useCase: func() *UsuarioServicio {
 				ctrl := gomock.NewController(t)
 				ru := mock_ports.NewMockRepositorioUsuarios(ctrl)
-				ru.EXPECT().AltaUsuario(usuario).Return(0, ErrOtro)
+				ru.EXPECT().AltaUsuario(gomock.Any()).Return(0, ErrOtro)
 
 				return CrearServicioUsuario(ru, nil)
 			}(),
@@ -77,7 +114,7 @@ func TestAltaUsuario_Fail(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			_, err := testCase.useCase.AltaUsuario(params)
+			_, err := testCase.useCase.AltaUsuario(testCase.params)
 
 			assertions := assert.New(t)
 			assertions.True(errors.Is(err, testCase.expectedErr))
@@ -111,13 +148,18 @@ func TestPatchUsuario_Fail(t *testing.T) {
 		ID:      1,
 	}
 
+	doc := domain.Documento{
+		Tipo:   domain.DNI,
+		Numero: "numero",
+	}
+
 	usuario := domain.Usuario{
 		Id:                1,
 		Username:          "user",
 		Nombre:            "nombre",
 		Apellido:          "apellido",
 		FechaDeNacimiento: time.Now(),
-		Documento:         obtenerDocumento("DNI", "123"),
+		Documento:         doc,
 		Email:             "email@email.com",
 		MonedasInteres:    []domain.Criptomoneda{moneda},
 	}
@@ -264,13 +306,18 @@ func TestPatchUsuario_Success(t *testing.T) {
 		ID:      1,
 	}
 
+	doc := domain.Documento{
+		Tipo:   domain.DNI,
+		Numero: "numero",
+	}
+
 	usuario := domain.Usuario{
 		Id:                1,
 		Username:          "user",
 		Nombre:            "nombre",
 		Apellido:          "apellido",
 		FechaDeNacimiento: time.Now(),
-		Documento:         obtenerDocumento("DNI", "123"),
+		Documento:         doc,
 		Email:             "email@email.com",
 		MonedasInteres:    []domain.Criptomoneda{moneda},
 	}
@@ -290,4 +337,82 @@ func TestPatchUsuario_Success(t *testing.T) {
 
 	err := CrearServicioUsuario(ru, rm).PatchUsuario(1, patches)
 	assert.Nil(t, err)
+}
+
+func TestCrearUsuario_Fail(t *testing.T) {
+
+	paramsTipoDocInvalido := ports.AltaUsuarioParams{
+		Username:          "username",
+		Nombre:            "nombre",
+		Apellido:          "apellido",
+		FechaDeNacimiento: time.Now(),
+		Documento:         "documento",
+		TipoDocumento:     "ESTE TIPO DE DNI NO EXISTE",
+		Email:             "email",
+	}
+
+	_, err := CrearUsuarioDeParams(paramsTipoDocInvalido)
+
+	assert.True(t, errors.Is(err, domain.ErrTipoDocumentoInexistente))
+}
+
+func TestCrearUsuario_Success(t *testing.T) {
+
+	paramsTipoDocInvalido := ports.AltaUsuarioParams{
+		Username:          "username",
+		Nombre:            "nombre",
+		Apellido:          "apellido",
+		FechaDeNacimiento: time.Now(),
+		Documento:         "documento",
+		Email:             "email",
+	}
+
+	tiposDoc := []string{"DNI", "CEDULA", "PASAPORTE"}
+
+	for _, tipo := range tiposDoc {
+		t.Run("Crear con usuario con tipo de documento: "+tipo, func(t *testing.T) {
+			paramsTipoDocInvalido.TipoDocumento = tipo
+			_, err := CrearUsuarioDeParams(paramsTipoDocInvalido)
+
+			assert.Nil(t, err)
+		})
+	}
+}
+
+func TestBajaUsuario_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	ru := mock_ports.NewMockRepositorioUsuarios(ctrl)
+	ru.EXPECT().BajaUsuario(1).Return(nil)
+	err := CrearServicioUsuario(ru, nil).BajaUsuario(1)
+	assert.Nil(t, err)
+}
+func TestBajaUsuario_Fail(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	ru := mock_ports.NewMockRepositorioUsuarios(ctrl)
+	ru.EXPECT().BajaUsuario(1).Return(errors.New("error en el repo haciendo la baja"))
+	err := CrearServicioUsuario(ru, nil).BajaUsuario(1)
+	assert.NotNil(t, err)
+
+}
+func TestBuscarTodos_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	ru := mock_ports.NewMockRepositorioUsuarios(ctrl)
+	ru.EXPECT().BuscarTodos().Return([]domain.Usuario{}, nil)
+	_, err := CrearServicioUsuario(ru, nil).BuscarTodos()
+	assert.Nil(t, err)
+}
+
+func TestBuscarTodos_Fail(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	ru := mock_ports.NewMockRepositorioUsuarios(ctrl)
+	ru.EXPECT().BuscarTodos().Return([]domain.Usuario{}, errors.New("error en el repo buscando todos"))
+	_, err := CrearServicioUsuario(ru, nil).BuscarTodos()
+	assert.NotNil(t, err)
+}
+
+func TestCrearServicioUsuario(t *testing.T) {
+	ru := mock_ports.NewMockRepositorioUsuarios(gomock.NewController(t))
+	rm := mock_ports.NewMockRepositorioMonedas(gomock.NewController(t))
+	s := CrearServicioUsuario(ru, rm)
+	assert.NotNil(t, s)
 }

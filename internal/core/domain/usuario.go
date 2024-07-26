@@ -56,7 +56,9 @@ func CreateDocumento(documento, tipo string) (Documento, error) {
 	case "CEDULA":
 		doc.Tipo = Cedula
 	default:
-		return Documento{}, errors.New("solo se aceptan DNI | PASAPORTE | CEDULA")
+		return Documento{}, ErrTipoDocumentoInexistente
 	}
 	return doc, nil
 }
+
+var ErrTipoDocumentoInexistente = errors.New("error de tipo de dni: solo se aceptan DNI | PASAPORTE | CEDULA")

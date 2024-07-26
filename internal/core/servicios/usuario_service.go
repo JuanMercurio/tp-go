@@ -2,6 +2,7 @@ package servicios
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/juanmercurio/tp-go/internal/core/domain"
@@ -26,7 +27,13 @@ func CrearServicioUsuario(ru ports.RepositorioUsuarios, rm ports.RepositorioMone
 }
 
 func (s UsuarioServicio) AltaUsuario(params ports.AltaUsuarioParams) (int, error) {
-	id, err := s.ru.AltaUsuario(CrearUsuario(params))
+
+	usuario, err := CrearUsuarioDeParams(params)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := s.ru.AltaUsuario(usuario)
 	if err != nil {
 		if strings.Contains(err.Error(), "email") {
 			return 0, ErrDuplicateMail
@@ -48,31 +55,20 @@ func (s UsuarioServicio) BuscarTodos() ([]domain.Usuario, error) {
 	return s.ru.BuscarTodos()
 }
 
-func CrearUsuario(p ports.AltaUsuarioParams) domain.Usuario {
+func CrearUsuarioDeParams(p ports.AltaUsuarioParams) (domain.Usuario, error) {
+	doc, err := domain.CreateDocumento(p.Documento, p.TipoDocumento)
+	if err != nil {
+		return domain.Usuario{}, fmt.Errorf("error creando el usuario: %w", err)
+	}
+
 	return domain.Usuario{
 		Username:          p.Username,
 		Nombre:            p.Nombre,
 		Apellido:          p.Apellido,
 		Email:             p.Email,
 		FechaDeNacimiento: p.FechaDeNacimiento,
-		Documento:         obtenerDocumento(p.TipoDocumento, p.Documento),
-	}
-}
-
-// todo redundante hay otra funcion sacar
-func obtenerDocumento(t, n string) domain.Documento {
-	var doc domain.Documento
-	switch t {
-	case "DNI":
-		doc.Tipo = domain.DNI
-	case "CEDULA":
-		doc.Tipo = domain.Cedula
-	case "PASAPORTE":
-		doc.Tipo = domain.Pasaporte
-	}
-
-	doc.Numero = n
-	return doc
+		Documento:         doc,
+	}, nil
 }
 
 func (s UsuarioServicio) PatchUsuario(id int, patchs []ports.Patch) error {
