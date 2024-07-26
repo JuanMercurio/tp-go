@@ -11,37 +11,40 @@ import (
 	"github.com/juanmercurio/tp-go/internal/ports"
 )
 
-type CotizacionUsuario struct {
+type ServicioCotizacion struct {
 	rc          ports.RepositorioCotizaciones
 	rm          ports.RepositorioMonedas
+	ru          ports.RepositorioUsuarios
 	cotizadores map[string]ports.Cotizador
 }
 
 func CrearServicioCotizacion(
 	rc ports.RepositorioCotizaciones,
 	rm ports.RepositorioMonedas,
+	ru ports.RepositorioUsuarios,
 	cotizadores ...ports.Cotizador,
-) *CotizacionUsuario {
+) *ServicioCotizacion {
 	mapCotizadores := make(map[string]ports.Cotizador)
 	for _, cotizador := range cotizadores {
 		mapCotizadores[cotizador.GetNombre()] = cotizador
 	}
 
-	return &CotizacionUsuario{
+	return &ServicioCotizacion{
 		rc: rc,
 		rm: rm,
+		ru: ru,
 	}
 }
 
-func (s CotizacionUsuario) AltaCotizacion(cotizacion domain.Cotizacion) (int, error) {
+func (s ServicioCotizacion) AltaCotizacion(cotizacion domain.Cotizacion) (int, error) {
 	return s.rc.AltaCotizacion(cotizacion)
 }
 
-func (s CotizacionUsuario) AltaCotizacionManual(usuario int, cotizacion domain.Cotizacion) (int, error) {
+func (s ServicioCotizacion) AltaCotizacionManual(usuario int, cotizacion domain.Cotizacion) (int, error) {
 	return s.rc.AltaCotizacionManual(usuario, cotizacion)
 }
 
-func (s CotizacionUsuario) AltaCotizaciones(api string) error {
+func (s ServicioCotizacion) AltaCotizaciones(api string) error {
 
 	monedas, err := s.rm.BuscarTodos()
 	if err != nil {
@@ -80,11 +83,25 @@ func (s CotizacionUsuario) AltaCotizaciones(api string) error {
 	return errors.Join(errores...)
 }
 
-func (s CotizacionUsuario) BajaCotizacionManual(id int) error {
+func (s ServicioCotizacion) BajaCotizacionManual(id int) error {
 	return s.rc.BajaCotizacionManual(id)
 }
 
-func (s CotizacionUsuario) PutCotizacion(idUsuario int, idCotizacion int, cotizacionNueva ports.CotizacionPut) error {
+func (s ServicioCotizacion) PutCotizacion(username string, idCotizacion int, cotizacionNueva ports.CotizacionPut) error {
+
+	idUsuario, err := s.ru.IdDeUsername(username)
+	if err != nil {
+		return err
+	}
+
+	manual, err := s.rc.EsCotizacionManual(idCotizacion)
+	if err != nil {
+		return err
+	}
+
+	if !manual {
+		return errors.New("no se puede modificar una cotizacion no manual")
+	}
 
 	cotizacionVieja, err := s.rc.CotizacionPorId(idCotizacion)
 	if err != nil {
@@ -118,7 +135,7 @@ func (s CotizacionUsuario) PutCotizacion(idUsuario int, idCotizacion int, cotiza
 	return s.rc.ActualizarCotizacionMap(idUsuario, idCotizacion, cambios)
 }
 
-func (s CotizacionUsuario) Cotizaciones(p ports.Filter) (int, []ports.CotizacionOutputDTO, error) {
+func (s ServicioCotizacion) Cotizaciones(p ports.Filter) (int, []ports.CotizacionOutputDTO, error) {
 	cantidad, cotizaciones, err := s.rc.Cotizaciones(p)
 	if err != nil {
 		return 0, nil, fmt.Errorf("no se pudo obtener la cotizaciones del repositorio: %w", err)
@@ -137,12 +154,12 @@ func (s CotizacionUsuario) Cotizaciones(p ports.Filter) (int, []ports.Cotizacion
 	return cantidad, cotizacionesDTOs, nil
 }
 
-func (s CotizacionUsuario) CotizarNuevaMoneda(id int, simbolo string) error {
+func (s ServicioCotizacion) CotizarNuevaMoneda(id int, simbolo string) error {
 	//todo implementar
 	return nil
 }
 
-func (s CotizacionUsuario) Resumen(filtros ports.Filter) (ports.Resumen, error) {
+func (s ServicioCotizacion) Resumen(filtros ports.Filter) (ports.Resumen, error) {
 	monedasString, fechaString, err := s.rc.Resumen(filtros)
 	if err != nil {
 		return ports.Resumen{}, err
@@ -167,16 +184,16 @@ func (s CotizacionUsuario) Resumen(filtros ports.Filter) (ports.Resumen, error) 
 	return r, nil
 }
 
-func (s CotizacionUsuario) CotizarManualmente(usuario int, simbolo string, fecha time.Time, precio float64) error {
+func (s ServicioCotizacion) CotizarManualmente(usuario int, simbolo string, fecha time.Time, precio float64) (int, error) {
 
 	ids, err := s.rm.IdsDeSimbolos(strings.Split(simbolo, " "))
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	moneda, err := s.rm.BuscarPorId(ids[0])
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	cotizacion := domain.Cotizacion{
@@ -186,15 +203,15 @@ func (s CotizacionUsuario) CotizarManualmente(usuario int, simbolo string, fecha
 		Api:    "manual",
 	}
 
-	_, err = s.AltaCotizacionManual(usuario, cotizacion)
+	id, err := s.AltaCotizacionManual(usuario, cotizacion)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return id, nil
 }
 
-func (s CotizacionUsuario) cotizarRoutine(api string,
+func (s ServicioCotizacion) cotizarRoutine(api string,
 	monedasCanal chan domain.Criptomoneda,
 	errorCanal chan error,
 	wg *sync.WaitGroup) {
@@ -209,7 +226,7 @@ func (s CotizacionUsuario) cotizarRoutine(api string,
 }
 
 // TODO seria mejor si retorna la cotizacion entera
-func (s CotizacionUsuario) cotizarMonedaYPersistir(api string, moneda domain.Criptomoneda) (float64, error) {
+func (s ServicioCotizacion) cotizarMonedaYPersistir(api string, moneda domain.Criptomoneda) (float64, error) {
 
 	cotizador, ok := s.cotizadores[api]
 	if !ok {
@@ -236,7 +253,7 @@ func (s CotizacionUsuario) cotizarMonedaYPersistir(api string, moneda domain.Cri
 	return valor, nil
 }
 
-func (s CotizacionUsuario) CotizacionPorId(idCotizacion int) (domain.Cotizacion, error) {
+func (s ServicioCotizacion) CotizacionPorId(idCotizacion int) (domain.Cotizacion, error) {
 	cotizacion, err := s.rc.CotizacionPorId(idCotizacion)
 	if err != nil {
 		return domain.Cotizacion{}, err

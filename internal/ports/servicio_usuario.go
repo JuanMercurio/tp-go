@@ -8,5 +8,7 @@ type ServicioUsuarios interface {
 	AltaUsuario(AltaUsuarioParams) (int, error)
 	BajaUsuario(id int) error
 	BuscarTodos() ([]domain.Usuario, error)
-	PatchUsuario(id int, patch []Patch) error
+	PatchUsuario(id int, patch []Patch) (domain.Usuario, error)
+	UsuarioValido(id int) error
+	IdDeUsername(username string) (int, error)
 }

@@ -1,6 +1,7 @@
 package servicios
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -71,11 +72,11 @@ func CrearUsuarioDeParams(p ports.AltaUsuarioParams) (domain.Usuario, error) {
 	}, nil
 }
 
-func (s UsuarioServicio) PatchUsuario(id int, patchs []ports.Patch) error {
+func (s UsuarioServicio) PatchUsuario(id int, patchs []ports.Patch) (domain.Usuario, error) {
 
 	usuario, err := s.ru.UsuarioPorId(id)
 	if err != nil {
-		return err
+		return domain.Usuario{}, err
 	}
 
 	mapPatchs := make(map[string]string)
@@ -83,7 +84,7 @@ func (s UsuarioServicio) PatchUsuario(id int, patchs []ports.Patch) error {
 		switch patch.Path {
 		case "monedas":
 			if err := s.ActualizarMonedasUsuario(usuario, patch.Op, patch.NuevoValor.(string)); err != nil {
-				return err
+				return domain.Usuario{}, err
 			}
 
 		default:
@@ -92,10 +93,10 @@ func (s UsuarioServicio) PatchUsuario(id int, patchs []ports.Patch) error {
 	}
 
 	if err := s.ru.ActualizarUsuarioConMap(id, mapPatchs); err != nil {
-		return err
+		return domain.Usuario{}, err
 	}
 
-	return nil
+	return s.ru.UsuarioPorId(id)
 }
 
 func (s UsuarioServicio) ActualizarMonedasUsuario(usuario domain.Usuario, op string, valor string) error {
@@ -128,4 +129,20 @@ func (s UsuarioServicio) ActualizarMonedasUsuario(usuario domain.Usuario, op str
 
 	}
 	return nil
+}
+
+func (s UsuarioServicio) UsuarioValido(id int) error {
+	_, err := s.ru.UsuarioPorId(id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errors.New("usuario no existe")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (s UsuarioServicio) IdDeUsername(username string) (int, error) {
+	return s.ru.IdDeUsername(username)
 }

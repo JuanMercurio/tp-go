@@ -13,4 +13,5 @@ type RepositorioUsuarios interface {
 	ReemplazarMonedas(usuario domain.Usuario, idsMonedas []int) error
 	AgregarMonedasAUsuario(usuario domain.Usuario, idsMonedas []int) error
 	EliminarMonedasUsuario(idUsuario int, idsMonedas []int) error
+	IdDeUsername(string) (int, error)
 }

@@ -37,11 +37,11 @@ func main() {
 
 	servicioUsuario := servicios.CrearServicioUsuario(repoUsuarios, repoMonedas)
 	servicioMoneda := servicios.CrearServicioMoneda(repoMonedas, paprikaAPI, coinbaseAPI)
-	servicioCotizacion := servicios.CrearServicioCotizacion(repoCotizaciones, repoMonedas, paprikaAPI, coinbaseAPI)
+	servicioCotizacion := servicios.CrearServicioCotizacion(repoCotizaciones, repoMonedas, repoUsuarios, paprikaAPI, coinbaseAPI)
 
 	handlerMoneda := handlers.CrearHandlerMoneda(servicioMoneda)
 	handlerUsuario := handlers.CrearHandlerUsuario(servicioUsuario)
-	handlerCotizacion := handlers.CrearHandlerCotizacion(servicioCotizacion, servicioMoneda)
+	handlerCotizacion := handlers.CrearHandlerCotizacion(servicioCotizacion, servicioMoneda, servicioUsuario)
 
 	server := http_server.Config(handlerMoneda, handlerUsuario, handlerCotizacion)
 

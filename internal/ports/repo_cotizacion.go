@@ -14,4 +14,5 @@ type RepositorioCotizaciones interface {
 	ActualizarCotizacionMap(idUsuario int, idCotizacion int, cambios map[string]any) error
 
 	CotizacionPorId(id int) (domain.Cotizacion, error)
+	EsCotizacionManual(id int) (bool, error)
 }

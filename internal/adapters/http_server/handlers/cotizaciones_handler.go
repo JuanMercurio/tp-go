@@ -13,12 +13,14 @@ import (
 type CotizacionHandler struct {
 	sc ports.ServicioCotizacion
 	sm ports.ServicioMonedas
+	su ports.ServicioUsuarios
 }
 
-func CrearHandlerCotizacion(sc ports.ServicioCotizacion, sm ports.ServicioMonedas) *CotizacionHandler {
+func CrearHandlerCotizacion(sc ports.ServicioCotizacion, sm ports.ServicioMonedas, su ports.ServicioUsuarios) *CotizacionHandler {
 	return &CotizacionHandler{
 		sc: sc,
 		sm: sm,
+		su: su,
 	}
 }
 
@@ -110,7 +112,7 @@ func ApiValida(nombre string) bool {
 // @Tags		Cotizacion
 // @Accept		json
 // @Produce	json
-// @Param		id-usuario	query		string	true	"Usuario que cotizara"
+// @Param		username	query		string	true	"Usuario que cotizara"
 // @Param		simbolo		query		string	true	"Simbolo de la moneda que cotizara"
 // @Param		precio		query		string	true	"Valor que cotizara"
 // @Param		fecha		query		string	true	"Fecha de la cotizacion"
@@ -124,9 +126,11 @@ func (mh CotizacionHandler) AltaCotizacionManual(c *gin.Context) {
 		return
 	}
 
-	idUsuario, err := strconv.Atoi(c.Query("id-usuario"))
+	username := c.Query("username")
+
+	idUsuario, err := mh.su.IdDeUsername(username)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("el usuario no es valido: %w", err).Error()})
 		return
 	}
 
@@ -143,13 +147,13 @@ func (mh CotizacionHandler) AltaCotizacionManual(c *gin.Context) {
 		return
 	}
 
-	err = mh.sc.CotizarManualmente(idUsuario, simbolo, fecha, precio)
+	id, err := mh.sc.CotizarManualmente(idUsuario, simbolo, fecha, precio)
 	if err != nil {
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, "Se realizo con exito la cotizacion")
+	c.JSON(http.StatusOK, fmt.Sprintf("La registro la cotizacion con exito y id: %d", id))
 }
 
 // @Summary	Usuario elimina cotizacion de moneda manualmente
@@ -180,8 +184,8 @@ func (mh CotizacionHandler) BajaCotizacion(c *gin.Context) {
 // @Tags		Cotizacion
 // @Accept		json
 // @Produce	json
-// @Param		id			path		string					true	"id de cotizacion"
-// @Param		id-usuario	query		string					true	"Usuario que hace los cambios"
+// @Param		id			path		string				true	"id de cotizacion"
+// @Param		username	query		string				true	"Usuario que hace los cambios"
 // @Param		cambios		body		ports.CotizacionPut	true	"Cotizacion Actualizada"
 // @Success	200			{object}	string
 // @Failure	400			{object}	string
@@ -200,13 +204,7 @@ func (mh CotizacionHandler) ActualizarCotizacion(c *gin.Context) {
 		return
 	}
 
-	idUsuario, err := strconv.Atoi(c.Query("id-usuario"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "el id del usuario debe ser un entero"})
-		return
-	}
-
-	err = mh.sc.PutCotizacion(idUsuario, idCotizacion, cotizacion)
+	err = mh.sc.PutCotizacion(c.Query("username"), idCotizacion, cotizacion)
 	if err != nil {
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return

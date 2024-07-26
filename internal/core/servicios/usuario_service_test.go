@@ -271,7 +271,7 @@ func TestPatchUsuario_Fail(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			err := testCase.useCase.PatchUsuario(1, patches)
+			_, err := testCase.useCase.PatchUsuario(1, patches)
 
 			assertions := assert.New(t)
 			assertions.True(strings.Contains(err.Error(), testCase.expectedErr))
@@ -335,7 +335,7 @@ func TestPatchUsuario_Success(t *testing.T) {
 	ru.EXPECT().AgregarMonedasAUsuario(gomock.Any(), gomock.Any()).Return(nil)
 	ru.EXPECT().ActualizarUsuarioConMap(gomock.Any(), gomock.Any()).Return(nil)
 
-	err := CrearServicioUsuario(ru, rm).PatchUsuario(1, patches)
+	_, err := CrearServicioUsuario(ru, rm).PatchUsuario(1, patches)
 	assert.Nil(t, err)
 }
 

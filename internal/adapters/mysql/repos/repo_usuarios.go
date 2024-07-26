@@ -2,6 +2,7 @@ package repos
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -169,13 +170,13 @@ func (r RepositorioUsuario) IsDuplicateString(tabla, columna string, valor strin
 }
 
 func (r RepositorioUsuario) UsuarioPorId(id int) (domain.Usuario, error) {
-	query := "SELECT username, apellido, doc, tipo_doc, email, fecha_nacimiento FROM usuario WHERE id = ?"
+	query := "SELECT username, nombre, apellido, doc, tipo_doc, email, fecha_nacimiento FROM usuario WHERE id = ?"
 
 	var u domain.Usuario
 	var fechaString string
 	var doc, tipo_doc string
 
-	if err := r.db.QueryRow(query, id).Scan(&u.Nombre, &u.Apellido, &doc, &tipo_doc, &u.Email, &fechaString); err != nil {
+	if err := r.db.QueryRow(query, id).Scan(&u.Username, &u.Nombre, &u.Apellido, &doc, &tipo_doc, &u.Email, &fechaString); err != nil {
 		return domain.Usuario{}, err
 	}
 
@@ -295,4 +296,15 @@ func (r RepositorioUsuario) EliminarMonedasUsuario(idUsuario int, idsMonedas []i
 	}
 
 	return nil
+}
+func (r RepositorioUsuario) IdDeUsername(username string) (int, error) {
+	query := "SELECT id FROM usuario WHERE username = ?"
+	var id int
+	if err := r.db.QueryRow(query, username).Scan(&id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, fmt.Errorf("el usuario no existe")
+		}
+		return 0, err
+	}
+	return id, nil
 }

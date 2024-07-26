@@ -22,7 +22,7 @@ func CrearRepositorioCotizaciones(cliente *sql.DB) *RepositorioCotizaciones {
 func (r RepositorioCotizaciones) AltaCotizacion(cotizacion domain.Cotizacion) (int, error) {
 	query := "INSERT INTO go.cotizacion (id_criptomoneda, fecha, valor, api) VALUES (?, ?, ?, ?)"
 
-	result, err := r.db.Exec(query, cotizacion.ID, cotizacion.Time, cotizacion.Valor, cotizacion.Api)
+	result, err := r.db.Exec(query, cotizacion.Moneda.ID, cotizacion.Time, cotizacion.Valor, cotizacion.Api)
 	if err != nil {
 		return 0, fmt.Errorf("error al ejecutar el query en la base: %w", err)
 	}
@@ -150,7 +150,7 @@ func (r RepositorioCotizaciones) ActualizarCotizacionMap(usuario int, idCotizaci
 	}
 	query = strings.TrimSuffix(query, ", ")
 
-	// query += fmt.Sprintf(" WHERE id = %d AND api = 'manual'", idCotizacion)
+	query += fmt.Sprintf(" WHERE id = %d AND api = 'manual'", idCotizacion)
 
 	_, err = r.db.Exec(query, params...)
 	if err != nil {
@@ -274,4 +274,18 @@ func (r RepositorioCotizaciones) monedaPorId(id int) (domain.Criptomoneda, error
 	}
 
 	return moneda, nil
+}
+
+func (r RepositorioCotizaciones) EsCotizacionManual(id int) (bool, error) {
+	query := "SELECT COUNT(*) FROM go.cotizacion WHERE id = ? AND api = 'manual'"
+	var rowCount int
+	if err := r.db.QueryRow(query, id).Scan(&rowCount); err != nil {
+		return false, err
+	}
+
+	if rowCount == 0 {
+		return false, nil
+	}
+
+	return true, nil
 }

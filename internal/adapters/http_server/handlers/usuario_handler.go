@@ -163,7 +163,7 @@ func ValidarParamsAltaUsuario(c *gin.Context) (ports.AltaUsuarioParams, error) {
 // @Accept			json
 // @Param			id		path		integer			true	"ID del usuario a actualizar"
 // @Param			body	body		[]ports.Patch	true	"Datos de actualización en JSON"
-// @Success		200		{object}	string
+// @Success		200		{object}	domain.Usuario
 // @Failure		400		{object}	string
 // @Router			/usuarios/{id} [patch]
 func (uh UsuarioHandler) ActualizarUsuario(c *gin.Context) {
@@ -183,12 +183,13 @@ func (uh UsuarioHandler) ActualizarUsuario(c *gin.Context) {
 		return
 	}
 
-	if err := uh.srv.PatchUsuario(id, cambios); err != nil {
+	usuario, err := uh.srv.PatchUsuario(id, cambios)
+	if err != nil {
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, "Los datos se actualizaron correctamente")
+	c.JSON(http.StatusOK, usuario)
 }
 
 func esMenor(fecha time.Time) bool {

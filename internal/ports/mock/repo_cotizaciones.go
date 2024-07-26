@@ -129,6 +129,21 @@ func (mr *MockRepositorioCotizacionesMockRecorder) Cotizaciones(arg0 any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cotizaciones", reflect.TypeOf((*MockRepositorioCotizaciones)(nil).Cotizaciones), arg0)
 }
 
+// EsCotizacionManual mocks base method.
+func (m *MockRepositorioCotizaciones) EsCotizacionManual(arg0 int) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EsCotizacionManual", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// EsCotizacionManual indicates an expected call of EsCotizacionManual.
+func (mr *MockRepositorioCotizacionesMockRecorder) EsCotizacionManual(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EsCotizacionManual", reflect.TypeOf((*MockRepositorioCotizaciones)(nil).EsCotizacionManual), arg0)
+}
+
 // Resumen mocks base method.
 func (m *MockRepositorioCotizaciones) Resumen(arg0 ports.Filter) (string, string, error) {
 	m.ctrl.T.Helper()

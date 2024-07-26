@@ -22,7 +22,7 @@
                     {
                         "type": "string",
                         "description": "Usuario que cotizara",
-                        "name": "id-usuario",
+                        "name": "username",
                         "in": "query",
                         "required": true
                     },
@@ -87,7 +87,7 @@
                     {
                         "type": "string",
                         "description": "Usuario que hace los cambios",
-                        "name": "id-usuario",
+                        "name": "username",
                         "in": "query",
                         "required": true
                     },
@@ -552,7 +552,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/domain.Usuario"
                         }
                     },
                     "400": {

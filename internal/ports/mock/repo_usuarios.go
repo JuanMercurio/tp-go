@@ -125,6 +125,21 @@ func (mr *MockRepositorioUsuariosMockRecorder) EliminarMonedasUsuario(arg0, arg1
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EliminarMonedasUsuario", reflect.TypeOf((*MockRepositorioUsuarios)(nil).EliminarMonedasUsuario), arg0, arg1)
 }
 
+// IdDeUsername mocks base method.
+func (m *MockRepositorioUsuarios) IdDeUsername(arg0 string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IdDeUsername", arg0)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IdDeUsername indicates an expected call of IdDeUsername.
+func (mr *MockRepositorioUsuariosMockRecorder) IdDeUsername(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IdDeUsername", reflect.TypeOf((*MockRepositorioUsuarios)(nil).IdDeUsername), arg0)
+}
+
 // ReemplazarMonedas mocks base method.
 func (m *MockRepositorioUsuarios) ReemplazarMonedas(arg0 domain.Usuario, arg1 []int) error {
 	m.ctrl.T.Helper()

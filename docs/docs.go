@@ -31,7 +31,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Usuario que cotizara",
-                        "name": "id-usuario",
+                        "name": "username",
                         "in": "query",
                         "required": true
                     },
@@ -96,7 +96,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Usuario que hace los cambios",
-                        "name": "id-usuario",
+                        "name": "username",
                         "in": "query",
                         "required": true
                     },
@@ -561,7 +561,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/domain.Usuario"
                         }
                     },
                     "400": {
