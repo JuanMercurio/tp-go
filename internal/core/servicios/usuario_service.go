@@ -1,7 +1,7 @@
 package servicios
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/juanmercurio/tp-go/internal/core/domain"
@@ -13,9 +13,15 @@ type UsuarioServicio struct {
 	rm ports.RepositorioMonedas
 }
 
+var (
+	ErrDuplicateMail     = errors.New("duplicate email")
+	ErrDuplicateUserName = errors.New("duplicate username")
+)
+
 func CrearServicioUsuario(ru ports.RepositorioUsuarios, rm ports.RepositorioMonedas) *UsuarioServicio {
 	return &UsuarioServicio{
 		ru: ru,
+		rm: rm,
 	}
 }
 
@@ -23,13 +29,12 @@ func (s UsuarioServicio) AltaUsuario(params ports.AltaUsuarioParams) (int, error
 	id, err := s.ru.AltaUsuario(CrearUsuario(params))
 	if err != nil {
 		if strings.Contains(err.Error(), "email") {
-			return 0, fmt.Errorf("el email ya existe")
+			return 0, ErrDuplicateMail
 		}
 
 		if strings.Contains(err.Error(), "username") {
-			return 0, fmt.Errorf("el username ya existe")
+			return 0, ErrDuplicateUserName
 		}
-
 		return 0, err
 	}
 	return id, nil
@@ -70,10 +75,6 @@ func obtenerDocumento(t, n string) domain.Documento {
 	return doc
 }
 
-// todo
-// las validaciones de parametros pueden ser en el handler
-// lo de duplicados lo puede manejar el repo
-// todas las validaciones de parametros deberian salir del servicio? depende. como siempre
 func (s UsuarioServicio) PatchUsuario(id int, patchs []ports.Patch) error {
 
 	usuario, err := s.ru.UsuarioPorId(id)
@@ -88,6 +89,7 @@ func (s UsuarioServicio) PatchUsuario(id int, patchs []ports.Patch) error {
 			if err := s.ActualizarMonedasUsuario(usuario, patch.Op, patch.NuevoValor.(string)); err != nil {
 				return err
 			}
+
 		default:
 			mapPatchs[patch.Path] = patch.NuevoValor.(string)
 		}
@@ -102,8 +104,9 @@ func (s UsuarioServicio) PatchUsuario(id int, patchs []ports.Patch) error {
 
 func (s UsuarioServicio) ActualizarMonedasUsuario(usuario domain.Usuario, op string, valor string) error {
 
-	simbolos := strings.Split(valor, ",")
-	//todo verificar que los simbolos que no existen tiran error
+	noWhitespace := strings.ReplaceAll(valor, " ", "")
+	simbolos := strings.Split(noWhitespace, ",")
+
 	idsSimbolos, err := s.rm.IdsDeSimbolos(simbolos)
 	if err != nil {
 		return err
@@ -124,7 +127,6 @@ func (s UsuarioServicio) ActualizarMonedasUsuario(usuario domain.Usuario, op str
 	case "quitar":
 
 		if err := s.ru.EliminarMonedasUsuario(usuario.Id, idsSimbolos); err != nil {
-
 			return err
 		}
 

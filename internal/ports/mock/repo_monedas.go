@@ -13,7 +13,6 @@ import (
 	reflect "reflect"
 
 	domain "github.com/juanmercurio/tp-go/internal/core/domain"
-	ports "github.com/juanmercurio/tp-go/internal/ports"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -38,21 +37,6 @@ func NewMockRepositorioMonedas(ctrl *gomock.Controller) *MockRepositorioMonedas 
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRepositorioMonedas) EXPECT() *MockRepositorioMonedasMockRecorder {
 	return m.recorder
-}
-
-// AltaCotizacion mocks base method.
-func (m *MockRepositorioMonedas) AltaCotizacion(arg0 domain.Cotizacion) (int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AltaCotizacion", arg0)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// AltaCotizacion indicates an expected call of AltaCotizacion.
-func (mr *MockRepositorioMonedasMockRecorder) AltaCotizacion(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AltaCotizacion", reflect.TypeOf((*MockRepositorioMonedas)(nil).AltaCotizacion), arg0)
 }
 
 // AltaMoneda mocks base method.
@@ -100,33 +84,60 @@ func (mr *MockRepositorioMonedasMockRecorder) BuscarTodos() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuscarTodos", reflect.TypeOf((*MockRepositorioMonedas)(nil).BuscarTodos))
 }
 
-// Cotizaciones mocks base method.
-func (m *MockRepositorioMonedas) Cotizaciones(arg0 ports.Filter) (int, []domain.Cotizacion, error) {
+// IdDeSimbolo mocks base method.
+func (m *MockRepositorioMonedas) IdDeSimbolo(arg0 string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Cotizaciones", arg0)
+	ret := m.ctrl.Call(m, "IdDeSimbolo", arg0)
 	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].([]domain.Cotizacion)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// Cotizaciones indicates an expected call of Cotizaciones.
-func (mr *MockRepositorioMonedasMockRecorder) Cotizaciones(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cotizaciones", reflect.TypeOf((*MockRepositorioMonedas)(nil).Cotizaciones), arg0)
-}
-
-// MonedasDeUsuario mocks base method.
-func (m *MockRepositorioMonedas) MonedasDeUsuario(arg0 int) ([]domain.Criptomoneda, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MonedasDeUsuario", arg0)
-	ret0, _ := ret[0].([]domain.Criptomoneda)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// MonedasDeUsuario indicates an expected call of MonedasDeUsuario.
-func (mr *MockRepositorioMonedasMockRecorder) MonedasDeUsuario(arg0 any) *gomock.Call {
+// IdDeSimbolo indicates an expected call of IdDeSimbolo.
+func (mr *MockRepositorioMonedasMockRecorder) IdDeSimbolo(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MonedasDeUsuario", reflect.TypeOf((*MockRepositorioMonedas)(nil).MonedasDeUsuario), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IdDeSimbolo", reflect.TypeOf((*MockRepositorioMonedas)(nil).IdDeSimbolo), arg0)
+}
+
+// IdsDeSimbolos mocks base method.
+func (m *MockRepositorioMonedas) IdsDeSimbolos(arg0 []string) ([]int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IdsDeSimbolos", arg0)
+	ret0, _ := ret[0].([]int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IdsDeSimbolos indicates an expected call of IdsDeSimbolos.
+func (mr *MockRepositorioMonedasMockRecorder) IdsDeSimbolos(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IdsDeSimbolos", reflect.TypeOf((*MockRepositorioMonedas)(nil).IdsDeSimbolos), arg0)
+}
+
+// SimboloValido mocks base method.
+func (m *MockRepositorioMonedas) SimboloValido(arg0 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SimboloValido", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SimboloValido indicates an expected call of SimboloValido.
+func (mr *MockRepositorioMonedasMockRecorder) SimboloValido(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SimboloValido", reflect.TypeOf((*MockRepositorioMonedas)(nil).SimboloValido), arg0)
+}
+
+// SimbolosValido mocks base method.
+func (m *MockRepositorioMonedas) SimbolosValido(arg0 []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SimbolosValido", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SimbolosValido indicates an expected call of SimbolosValido.
+func (mr *MockRepositorioMonedasMockRecorder) SimbolosValido(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SimbolosValido", reflect.TypeOf((*MockRepositorioMonedas)(nil).SimbolosValido), arg0)
 }

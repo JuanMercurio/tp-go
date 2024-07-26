@@ -188,7 +188,7 @@ func (uh UsuarioHandler) ActualizarUsuario(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, "noice")
+	c.JSON(http.StatusOK, "Los datos se actualizaron correctamente")
 }
 
 func esMenor(fecha time.Time) bool {

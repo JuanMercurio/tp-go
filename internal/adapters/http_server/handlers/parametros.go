@@ -11,7 +11,7 @@ import (
 	"github.com/juanmercurio/tp-go/internal/ports"
 )
 
-func validarParametros(c *gin.Context) (ports.Filter, error) {
+func validarParametrosCotizaciones(c *gin.Context) (ports.Filter, error) {
 	fechaInicial, fechaFinal, err := validarFechas(c.Query("fecha_inicial"), c.Query("fecha_final"))
 	if err != nil {
 		return ports.Filter{}, fmt.Errorf("error en la validacion de fechas: %w", err)

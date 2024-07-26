@@ -74,49 +74,7 @@ const docTemplate = `{
             }
         },
         "/cotizacion/{id}": {
-            "delete": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cotizacion"
-                ],
-                "summary": "Usuario elimina cotizacion de moneda manualmente",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Usuario que elimina",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "cotizacion a eliminar",
-                        "name": "id-cotizacion",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "patch": {
+            "put": {
                 "consumes": [
                     "application/json"
                 ],
@@ -143,16 +101,55 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Usuario que hace los cambios",
+                        "description": "Cotizacion Actualizada",
                         "name": "cambios",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ports.Patch"
-                            }
+                            "$ref": "#/definitions/ports.CotizacionPut"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cotizacion"
+                ],
+                "summary": "Usuario elimina cotizacion de moneda manualmente",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Usuario que elimina",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "cotizacion a eliminar",
+                        "name": "id-cotizacion",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -645,6 +642,20 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "ports.CotizacionPut": {
+            "type": "object",
+            "properties": {
+                "fecha": {
+                    "type": "string"
+                },
+                "simbolo": {
+                    "type": "string"
+                },
+                "valor": {
+                    "type": "number"
                 }
             }
         },

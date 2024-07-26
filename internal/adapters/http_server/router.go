@@ -13,7 +13,11 @@ type Router struct {
 	*gin.Engine
 }
 
-func Config(mh *handlers.MonedaHandler, uh *handlers.UsuarioHandler) Router {
+func Config(
+	mh *handlers.MonedaHandler,
+	uh *handlers.UsuarioHandler,
+	ch *handlers.CotizacionHandler,
+) Router {
 
 	router := gin.Default()
 
@@ -22,18 +26,19 @@ func Config(mh *handlers.MonedaHandler, uh *handlers.UsuarioHandler) Router {
 	router.DELETE("/usuarios", uh.BajaUsuario)
 	router.PATCH("/usuarios/:id", uh.ActualizarUsuario)
 
-	router.POST("/cotizacion", mh.AltaCotizacionManual)
-	router.DELETE("/cotizacion/:id", mh.BajaCotizacion)
-	router.PATCH("/cotizacion/:id", mh.ActualizarCotizacion)
+	router.POST("/cotizacion", ch.AltaCotizacionManual)
+	router.DELETE("/cotizacion/:id", ch.BajaCotizacion)
+	router.PUT("/cotizacion/:id", ch.ActualizarCotizacion)
 
 	router.GET("/monedas", mh.BuscarMonedas)
-	router.GET("/cotizaciones", mh.Cotizaciones)
+	router.GET("/cotizaciones", ch.Cotizaciones)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	router.Use(handlers.Autenticar)
+
 	router.POST("/monedas", mh.AltaMoneda)
-	router.POST("/cotizaciones", mh.AltaCotizaciones)
+	router.POST("/cotizaciones", ch.AltaCotizaciones)
 
 	return Router{router}
 }

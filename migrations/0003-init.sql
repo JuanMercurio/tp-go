@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS auditoria (
         id_cotizacion INT NOT NULL,
         accion VARCHAR(255),
         columna_afectada VARCHAR(255),
+        viejo_valor VARCHAR(255),
         nuevo_valor VARCHAR(255),
         fecha DATETIME,
         FOREIGN KEY (id_usuario) REFERENCES usuario(id),

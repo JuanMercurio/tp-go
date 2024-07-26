@@ -12,9 +12,9 @@ import (
 )
 
 // crea la query sin el select
-func QueryBaseCotizaciones(p ports.Filter) queryBuilder {
+func QueryBaseCotizaciones(p ports.Filter) QueryBuilder {
 
-	var sentencia queryBuilder
+	var sentencia QueryBuilder
 	sentencia.From = "FROM cotizacion"
 
 	if len(p.Monedas) > 0 {
@@ -68,22 +68,26 @@ func ordenToString(orden ports.Orden) string {
 	return columna + " " + columnaOrden
 }
 
-func (r RepositorioMoneda) extraerCotizaciones(rows *sql.Rows) []domain.Cotizacion {
+func (r RepositorioCotizaciones) extraerCotizaciones(rows *sql.Rows) []domain.Cotizacion {
 	var cotizaciones []domain.Cotizacion
 	var i int
 	for rows.Next() {
 		i++
 
 		var cotizacion domain.Cotizacion
-		var id_moneda int
 		var tiempoString string
-		if err := rows.Scan(&id_moneda, &tiempoString, &cotizacion.Valor, &cotizacion.Api); err != nil {
+		if err := rows.Scan(&cotizacion.Moneda.ID, &tiempoString, &cotizacion.Valor, &cotizacion.Api); err != nil {
 			//TODO no deberia ser aun log fatal
 			log.Fatal(err)
 		}
 
 		// TODO no ir siempre a la base esto puede ser mas performante si memoizamos o hacemos un join
-		moneda, _ := r.BuscarPorId(id_moneda)
+		moneda, err := r.monedaPorId(cotizacion.Moneda.ID)
+		if err != nil {
+			//TODO no deberia ser aun log fatal
+			log.Fatal(err)
+		}
+
 		cotizacion.Time, _ = time.Parse("2006-01-02 15:04:05", tiempoString)
 		cotizacion.Moneda = moneda
 

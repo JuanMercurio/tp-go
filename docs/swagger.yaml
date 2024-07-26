@@ -46,6 +46,15 @@ definitions:
       username:
         type: string
     type: object
+  ports.CotizacionPut:
+    properties:
+      fecha:
+        type: string
+      simbolo:
+        type: string
+      valor:
+        type: number
+    type: object
   ports.MonedaOutputDTO:
     properties:
       id:
@@ -136,7 +145,7 @@ paths:
       summary: Usuario elimina cotizacion de moneda manualmente
       tags:
       - Cotizacion
-    patch:
+    put:
       consumes:
       - application/json
       parameters:
@@ -150,14 +159,12 @@ paths:
         name: id-usuario
         required: true
         type: string
-      - description: Usuario que hace los cambios
+      - description: Cotizacion Actualizada
         in: body
         name: cambios
         required: true
         schema:
-          items:
-            $ref: '#/definitions/ports.Patch'
-          type: array
+          $ref: '#/definitions/ports.CotizacionPut'
       produces:
       - application/json
       responses:

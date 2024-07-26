@@ -90,7 +90,7 @@ func (r RepositorioUsuario) BajaUsuarioEliminando(id int) error {
 
 func (r RepositorioUsuario) MonedasDeUsuario(id int) ([]domain.Criptomoneda, error) {
 
-	var builder queryBuilder
+	var builder QueryBuilder
 	builder.Select = "SELECT criptomoneda.id, criptomoneda.nombre, criptomoneda.simbolo"
 	builder.From = "FROM criptomoneda"
 	builder.AddJoin("usuario_criptomoneda", "criptomoneda.id = usuario_criptomoneda.id_criptomoneda")
@@ -228,37 +228,34 @@ func (r RepositorioUsuario) ActualizarUsuarioConMap(id int, cambios map[string]s
 }
 
 func (r RepositorioUsuario) ReemplazarMonedas(usuario domain.Usuario, idMonedas []int) error {
-	{
 
-		tx, err := r.db.Begin()
-		if err != nil {
-			return err
-		}
-
-		if err := r.EliminarTodasMonedasUsuario(usuario.Id); err != nil {
-			tx.Rollback()
-			return err
-		}
-
-		if err := r.AgregarMonedasAUsuario(usuario, idMonedas); err != nil {
-			tx.Rollback()
-			return err
-		}
-
-		if err := tx.Commit(); err != nil {
-			return err
-		}
-
-		return nil
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
 	}
+
+	if err := r.EliminarTodasMonedasUsuario(usuario.Id); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := r.AgregarMonedasAUsuario(usuario, idMonedas); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r RepositorioUsuario) EliminarTodasMonedasUsuario(id int) error {
 	query := fmt.Sprintf("DELETE FROM usuario_criptomoneda WHERE id_usuario = %d", id)
-	fmt.Println(query)
+
 	_, err := r.db.Exec(query)
 	if err != nil {
-
 		return err
 	}
 	return nil
@@ -272,8 +269,9 @@ func (r RepositorioUsuario) AgregarMonedasAUsuario(usuario domain.Usuario, idMon
 	query := "INSERT INTO usuario_criptomoneda (id_usuario, id_criptomoneda) VALUES "
 
 	for _, id := range idMonedas {
-		query += fmt.Sprintf("(%d, %d)", usuario.Id, id)
+		query += fmt.Sprintf("(%d, %d),", usuario.Id, id)
 	}
+	query = strings.TrimRight(query, ",")
 
 	if _, err := r.db.Exec(query); err != nil {
 		return err
@@ -288,7 +286,6 @@ func (r RepositorioUsuario) EliminarMonedasUsuario(idUsuario int, idsMonedas []i
 	for _, id := range idsMonedas {
 		ids += fmt.Sprintf("%d,", id)
 	}
-
 	ids = strings.TrimRight(ids, ",")
 
 	query := fmt.Sprintf("DELETE FROM usuario_criptomoneda WHERE id_usuario = ? AND id_criptomoneda IN (%s)", ids)

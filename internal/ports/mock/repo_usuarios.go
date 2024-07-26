@@ -39,6 +39,34 @@ func (m *MockRepositorioUsuarios) EXPECT() *MockRepositorioUsuariosMockRecorder 
 	return m.recorder
 }
 
+// ActualizarUsuarioConMap mocks base method.
+func (m *MockRepositorioUsuarios) ActualizarUsuarioConMap(arg0 int, arg1 map[string]string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ActualizarUsuarioConMap", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ActualizarUsuarioConMap indicates an expected call of ActualizarUsuarioConMap.
+func (mr *MockRepositorioUsuariosMockRecorder) ActualizarUsuarioConMap(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ActualizarUsuarioConMap", reflect.TypeOf((*MockRepositorioUsuarios)(nil).ActualizarUsuarioConMap), arg0, arg1)
+}
+
+// AgregarMonedasAUsuario mocks base method.
+func (m *MockRepositorioUsuarios) AgregarMonedasAUsuario(arg0 domain.Usuario, arg1 []int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AgregarMonedasAUsuario", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AgregarMonedasAUsuario indicates an expected call of AgregarMonedasAUsuario.
+func (mr *MockRepositorioUsuariosMockRecorder) AgregarMonedasAUsuario(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AgregarMonedasAUsuario", reflect.TypeOf((*MockRepositorioUsuarios)(nil).AgregarMonedasAUsuario), arg0, arg1)
+}
+
 // AltaUsuario mocks base method.
 func (m *MockRepositorioUsuarios) AltaUsuario(arg0 domain.Usuario) (int, error) {
 	m.ctrl.T.Helper()
@@ -81,4 +109,47 @@ func (m *MockRepositorioUsuarios) BuscarTodos() ([]domain.Usuario, error) {
 func (mr *MockRepositorioUsuariosMockRecorder) BuscarTodos() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuscarTodos", reflect.TypeOf((*MockRepositorioUsuarios)(nil).BuscarTodos))
+}
+
+// EliminarMonedasUsuario mocks base method.
+func (m *MockRepositorioUsuarios) EliminarMonedasUsuario(arg0 int, arg1 []int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EliminarMonedasUsuario", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// EliminarMonedasUsuario indicates an expected call of EliminarMonedasUsuario.
+func (mr *MockRepositorioUsuariosMockRecorder) EliminarMonedasUsuario(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EliminarMonedasUsuario", reflect.TypeOf((*MockRepositorioUsuarios)(nil).EliminarMonedasUsuario), arg0, arg1)
+}
+
+// ReemplazarMonedas mocks base method.
+func (m *MockRepositorioUsuarios) ReemplazarMonedas(arg0 domain.Usuario, arg1 []int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReemplazarMonedas", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReemplazarMonedas indicates an expected call of ReemplazarMonedas.
+func (mr *MockRepositorioUsuariosMockRecorder) ReemplazarMonedas(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReemplazarMonedas", reflect.TypeOf((*MockRepositorioUsuarios)(nil).ReemplazarMonedas), arg0, arg1)
+}
+
+// UsuarioPorId mocks base method.
+func (m *MockRepositorioUsuarios) UsuarioPorId(arg0 int) (domain.Usuario, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UsuarioPorId", arg0)
+	ret0, _ := ret[0].(domain.Usuario)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UsuarioPorId indicates an expected call of UsuarioPorId.
+func (mr *MockRepositorioUsuariosMockRecorder) UsuarioPorId(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UsuarioPorId", reflect.TypeOf((*MockRepositorioUsuarios)(nil).UsuarioPorId), arg0)
 }

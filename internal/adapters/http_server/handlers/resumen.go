@@ -15,8 +15,8 @@ type Filtros struct {
 	OrdenDireccion string `form:"orden_direccion"`
 }
 
-func (h MonedaHandler) crearResumen(params ports.Filter) (ports.Resumen, error) {
-	resumen, err := h.srv.Resumen(params)
+func (h CotizacionHandler) crearResumen(params ports.Filter) (ports.Resumen, error) {
+	resumen, err := h.sc.Resumen(params)
 	if err != nil {
 		return ports.Resumen{}, err
 	}
