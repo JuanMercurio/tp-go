@@ -1,4 +1,4 @@
-package ports
+package types
 
 type CotizacionPut struct {
 	Fecha   string  `json:"fecha"`

@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juanmercurio/tp-go/internal/ports"
+	"github.com/juanmercurio/tp-go/internal/ports/types"
 )
 
 type UsuarioHandler struct {
@@ -100,51 +101,51 @@ func (mh UsuarioHandler) BuscarUsuarios(c *gin.Context) {
 	c.JSON(http.StatusOK, usuarios)
 }
 
-func ValidarParamsAltaUsuario(c *gin.Context) (ports.AltaUsuarioParams, error) {
+func ValidarParamsAltaUsuario(c *gin.Context) (types.AltaUsuarioParams, error) {
 
 	if c.Query("nombre") == "" {
-		return ports.AltaUsuarioParams{}, errors.New("debe proporcionar un nombre de usuario")
+		return types.AltaUsuarioParams{}, errors.New("debe proporcionar un nombre de usuario")
 	}
 
 	if c.Query("email") == "" {
-		return ports.AltaUsuarioParams{}, errors.New("debe proporcionar un email usuario")
+		return types.AltaUsuarioParams{}, errors.New("debe proporcionar un email usuario")
 	}
 
 	if c.Query("apellido") == "" {
-		return ports.AltaUsuarioParams{}, errors.New("debe proporcionar un apellido")
+		return types.AltaUsuarioParams{}, errors.New("debe proporcionar un apellido")
 	}
 
 	if c.Query("fecha_nacimiento") == "" {
-		return ports.AltaUsuarioParams{}, errors.New("debe proporcionar una fecha de nacimiento")
+		return types.AltaUsuarioParams{}, errors.New("debe proporcionar una fecha de nacimiento")
 	}
 
 	if c.Query("tipo_documento") == "" {
-		return ports.AltaUsuarioParams{}, errors.New("debe proporcionar un tipo de documento")
+		return types.AltaUsuarioParams{}, errors.New("debe proporcionar un tipo de documento")
 	}
 
 	if c.Query("documento_numero") == "" {
-		return ports.AltaUsuarioParams{}, errors.New("debe proporcionar un numero de documento")
+		return types.AltaUsuarioParams{}, errors.New("debe proporcionar un numero de documento")
 	}
 
 	if c.Query("username") == "" {
-		return ports.AltaUsuarioParams{}, errors.New("debe proporcionar un username")
+		return types.AltaUsuarioParams{}, errors.New("debe proporcionar un username")
 	}
 
 	fecha, err := stringAFecha(c.Query("fecha_nacimiento"))
 	if err != nil {
-		return ports.AltaUsuarioParams{}, err
+		return types.AltaUsuarioParams{}, err
 	}
 
 	if esMenor(fecha) {
-		return ports.AltaUsuarioParams{}, errors.New("debes ser mayor de edad para usar esta plataforma")
+		return types.AltaUsuarioParams{}, errors.New("debes ser mayor de edad para usar esta plataforma")
 	}
 
 	tipoDoc := strings.ToUpper(c.Query("tipo_documento"))
 	if tipoDocValido(tipoDoc) {
-		return ports.AltaUsuarioParams{}, errors.New("tipo invalido de documento")
+		return types.AltaUsuarioParams{}, errors.New("tipo invalido de documento")
 	}
 
-	parametros := ports.AltaUsuarioParams{
+	parametros := types.AltaUsuarioParams{
 		Username:          c.Query("username"),
 		Nombre:            c.Query("nombre"),
 		Apellido:          c.Query("apellido"),
@@ -172,7 +173,7 @@ func (uh UsuarioHandler) ActualizarUsuario(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	var cambios []ports.Patch
+	var cambios []types.Patch
 	if err := c.BindJSON(&cambios); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("formato incorrecto: %w", err).Error()})
 		return
@@ -196,7 +197,7 @@ func esMenor(fecha time.Time) bool {
 	return time.Since(fecha).Hours()/24/365 < 18
 }
 
-func validarActualizarUsuario(cambios []ports.Patch) error {
+func validarActualizarUsuario(cambios []types.Patch) error {
 	for _, c := range cambios {
 
 		if c.Path == "fecha" {

@@ -8,36 +8,36 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juanmercurio/tp-go/internal/ports"
+	"github.com/juanmercurio/tp-go/internal/ports/types"
 )
 
-func validarParametrosCotizaciones(c *gin.Context) (ports.Filter, error) {
+func validarParametrosCotizaciones(c *gin.Context) (types.Filter, error) {
 	fechaInicial, fechaFinal, err := validarFechas(c.Query("fecha_inicial"), c.Query("fecha_final"))
 	if err != nil {
-		return ports.Filter{}, fmt.Errorf("error en la validacion de fechas: %w", err)
+		return types.Filter{}, fmt.Errorf("error en la validacion de fechas: %w", err)
 	}
 
 	tamPaginas, err := strconv.Atoi(c.DefaultQuery("tam_paginas", "50"))
 	if err != nil {
-		return ports.Filter{}, fmt.Errorf("el tamaño de las paginas debe ser un numero entero: %w", err)
+		return types.Filter{}, fmt.Errorf("el tamaño de las paginas debe ser un numero entero: %w", err)
 	}
 
 	cantPaginas, err := strconv.Atoi(c.DefaultQuery("cant_paginas", "10"))
 	if err != nil {
-		return ports.Filter{}, fmt.Errorf("a cantidad de paginas debe ser un numero entero: %w", err)
+		return types.Filter{}, fmt.Errorf("a cantidad de paginas debe ser un numero entero: %w", err)
 	}
 
 	orden := validarOrden(c.Query("orden"), c.Query("orden_direccion"))
 
 	paginaInicial, err := strconv.Atoi(c.DefaultQuery("pagina_inicial", "1"))
 	if err != nil {
-		return ports.Filter{}, fmt.Errorf("la pagina inicial debe ser un entero: %w", err)
+		return types.Filter{}, fmt.Errorf("la pagina inicial debe ser un entero: %w", err)
 	}
 	paginaInicial--
 
 	usuarioId, err := strconv.Atoi(c.DefaultQuery("usuario", "0"))
 	if err != nil {
-		return ports.Filter{}, fmt.Errorf("el id de usuario debe ser un numero")
+		return types.Filter{}, fmt.Errorf("el id de usuario debe ser un numero")
 	}
 
 	var monedasSlice []string
@@ -45,7 +45,7 @@ func validarParametrosCotizaciones(c *gin.Context) (ports.Filter, error) {
 		monedasSlice = strings.Split(monedas, " ")
 	}
 
-	parametros := ports.Filter{
+	parametros := types.Filter{
 		FechaInicial:  fechaInicial,
 		FechaFinal:    fechaFinal,
 		TamPaginas:    min(50, tamPaginas), // este valor y el de abajo esta harcodeados TODO
@@ -60,17 +60,17 @@ func validarParametrosCotizaciones(c *gin.Context) (ports.Filter, error) {
 	return parametros, nil
 }
 
-func validarOrden(orden string, ordenDireccion string) ports.Orden {
-	filtro := ports.Orden{}
+func validarOrden(orden string, ordenDireccion string) types.Orden {
+	filtro := types.Orden{}
 	switch orden {
 	case "nombre":
-		filtro.TipoOrden = ports.OrdenPorNombre
+		filtro.TipoOrden = types.OrdenPorNombre
 	case "valor":
-		filtro.TipoOrden = ports.OrdenPorValor
+		filtro.TipoOrden = types.OrdenPorValor
 	case "fecha":
-		filtro.TipoOrden = ports.OrdenPorFecha
+		filtro.TipoOrden = types.OrdenPorFecha
 	default:
-		filtro.TipoOrden = ports.OrdenPorFecha
+		filtro.TipoOrden = types.OrdenPorFecha
 	}
 
 	filtro.Ascendente = ordenDireccion == "asc" || ordenDireccion == "ascendente"

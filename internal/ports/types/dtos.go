@@ -1,4 +1,4 @@
-package ports
+package types
 
 type CotizacionOutputDTO struct {
 	NombreMoneda string  `json:"nombre"`

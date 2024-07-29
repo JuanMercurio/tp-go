@@ -6,6 +6,7 @@ import (
 
 	"github.com/juanmercurio/tp-go/internal/core/domain"
 	"github.com/juanmercurio/tp-go/internal/ports"
+	"github.com/juanmercurio/tp-go/internal/ports/types"
 )
 
 type MonedaServicio struct {
@@ -41,28 +42,28 @@ func (s MonedaServicio) AltaMoneda(moneda, simbolo string) (int, error) {
 	return s.repo.AltaMoneda(domain.CrearMoneda(moneda, simbolo))
 }
 
-func (s MonedaServicio) BuscarPorId(id int) (ports.MonedaOutputDTO, error) {
+func (s MonedaServicio) BuscarPorId(id int) (types.MonedaOutputDTO, error) {
 	moneda, err := s.repo.BuscarPorId(id)
 	if err != nil {
-		return ports.MonedaOutputDTO{}, fmt.Errorf("no se encontro por id %d: %w", id, err)
+		return types.MonedaOutputDTO{}, fmt.Errorf("no se encontro por id %d: %w", id, err)
 	}
 
-	return ports.MonedaOutputDTO{
+	return types.MonedaOutputDTO{
 		Id:           moneda.ID,
 		NombreMoneda: moneda.Nombre,
 		Simbolo:      moneda.Simbolo,
 	}, nil
 }
 
-func (s MonedaServicio) BuscarTodos() ([]ports.MonedaOutputDTO, error) {
+func (s MonedaServicio) BuscarTodos() ([]types.MonedaOutputDTO, error) {
 	monedas, err := s.repo.BuscarTodos()
 	if err != nil {
 		return nil, fmt.Errorf("no se pudieron obtener las monedas del repositorio: %w", err)
 	}
 
-	monedasDTOs := make([]ports.MonedaOutputDTO, len(monedas))
+	monedasDTOs := make([]types.MonedaOutputDTO, len(monedas))
 	for i, moneda := range monedas {
-		monedasDTOs[i] = ports.MonedaOutputDTO{
+		monedasDTOs[i] = types.MonedaOutputDTO{
 			Id:           moneda.ID,
 			NombreMoneda: moneda.Nombre,
 			Simbolo:      moneda.Simbolo,

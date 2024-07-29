@@ -11,5 +11,4 @@ type Cotizador interface {
 	ExisteMoneda(simbolo string) (bool, error)
 	Cotizar(simbolos string) (float64, error)
 	GetNombre() string
-	// CotizarConcurrente(simbolos []string) ([]Cotizacion, error)
 }

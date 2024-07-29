@@ -1,4 +1,4 @@
-package ports
+package types
 
 type Patch struct {
 	Op         string `json:"op"`

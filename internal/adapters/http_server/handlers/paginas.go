@@ -3,7 +3,7 @@ package handlers
 import (
 	"math"
 
-	"github.com/juanmercurio/tp-go/internal/ports"
+	"github.com/juanmercurio/tp-go/internal/ports/types"
 )
 
 type Pagina []any
@@ -36,7 +36,7 @@ func obtenerElementos(elementos []any, offset int, cant int) Pagina {
 	return elementos[offset : offset+cant]
 }
 
-func cotizacionesToAny(cotizaciones []ports.CotizacionOutputDTO) []any {
+func cotizacionesToAny(cotizaciones []types.CotizacionOutputDTO) []any {
 	elementos := make([]any, len(cotizaciones))
 	for i, cotizacion := range cotizaciones {
 		elementos[i] = cotizacion

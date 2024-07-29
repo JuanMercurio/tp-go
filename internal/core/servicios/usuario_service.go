@@ -8,6 +8,7 @@ import (
 
 	"github.com/juanmercurio/tp-go/internal/core/domain"
 	"github.com/juanmercurio/tp-go/internal/ports"
+	"github.com/juanmercurio/tp-go/internal/ports/types"
 )
 
 type UsuarioServicio struct {
@@ -27,7 +28,7 @@ func CrearServicioUsuario(ru ports.RepositorioUsuarios, rm ports.RepositorioMone
 	}
 }
 
-func (s UsuarioServicio) AltaUsuario(params ports.AltaUsuarioParams) (int, error) {
+func (s UsuarioServicio) AltaUsuario(params types.AltaUsuarioParams) (int, error) {
 
 	usuario, err := CrearUsuarioDeParams(params)
 	if err != nil {
@@ -56,7 +57,7 @@ func (s UsuarioServicio) BuscarTodos() ([]domain.Usuario, error) {
 	return s.ru.BuscarTodos()
 }
 
-func CrearUsuarioDeParams(p ports.AltaUsuarioParams) (domain.Usuario, error) {
+func CrearUsuarioDeParams(p types.AltaUsuarioParams) (domain.Usuario, error) {
 	doc, err := domain.CreateDocumento(p.Documento, p.TipoDocumento)
 	if err != nil {
 		return domain.Usuario{}, fmt.Errorf("error creando el usuario: %w", err)
@@ -72,7 +73,7 @@ func CrearUsuarioDeParams(p ports.AltaUsuarioParams) (domain.Usuario, error) {
 	}, nil
 }
 
-func (s UsuarioServicio) PatchUsuario(id int, patchs []ports.Patch) (domain.Usuario, error) {
+func (s UsuarioServicio) PatchUsuario(id int, patchs []types.Patch) (domain.Usuario, error) {
 
 	usuario, err := s.ru.UsuarioPorId(id)
 	if err != nil {

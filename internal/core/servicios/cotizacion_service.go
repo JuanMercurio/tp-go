@@ -9,6 +9,7 @@ import (
 
 	"github.com/juanmercurio/tp-go/internal/core/domain"
 	"github.com/juanmercurio/tp-go/internal/ports"
+	"github.com/juanmercurio/tp-go/internal/ports/types"
 )
 
 type ServicioCotizacion struct {
@@ -87,7 +88,7 @@ func (s ServicioCotizacion) BajaCotizacionManual(id int) error {
 	return s.rc.BajaCotizacionManual(id)
 }
 
-func (s ServicioCotizacion) PutCotizacion(username string, idCotizacion int, cotizacionNueva ports.CotizacionPut) error {
+func (s ServicioCotizacion) PutCotizacion(username string, idCotizacion int, cotizacionNueva types.CotizacionPut) error {
 
 	idUsuario, err := s.ru.IdDeUsername(username)
 	if err != nil {
@@ -135,15 +136,15 @@ func (s ServicioCotizacion) PutCotizacion(username string, idCotizacion int, cot
 	return s.rc.ActualizarCotizacionMap(idUsuario, idCotizacion, cambios)
 }
 
-func (s ServicioCotizacion) Cotizaciones(p ports.Filter) (int, []ports.CotizacionOutputDTO, error) {
+func (s ServicioCotizacion) Cotizaciones(p types.Filter) (int, []types.CotizacionOutputDTO, error) {
 	cantidad, cotizaciones, err := s.rc.Cotizaciones(p)
 	if err != nil {
 		return 0, nil, fmt.Errorf("no se pudo obtener la cotizaciones del repositorio: %w", err)
 	}
 
-	cotizacionesDTOs := make([]ports.CotizacionOutputDTO, len(cotizaciones))
+	cotizacionesDTOs := make([]types.CotizacionOutputDTO, len(cotizaciones))
 	for i, cotizacion := range cotizaciones {
-		cotizacionesDTOs[i] = ports.CotizacionOutputDTO{
+		cotizacionesDTOs[i] = types.CotizacionOutputDTO{
 			NombreMoneda: cotizacion.Moneda.Nombre,
 			Valor:        cotizacion.Valor,
 			Fecha:        cotizacion.Time.Format("2006-01-02 15:04:05"),
@@ -159,25 +160,25 @@ func (s ServicioCotizacion) CotizarNuevaMoneda(id int, simbolo string) error {
 	return nil
 }
 
-func (s ServicioCotizacion) Resumen(filtros ports.Filter) (ports.Resumen, error) {
+func (s ServicioCotizacion) Resumen(filtros types.Filter) (types.Resumen, error) {
 	monedasString, fechaString, err := s.rc.Resumen(filtros)
 	if err != nil {
-		return ports.Resumen{}, err
+		return types.Resumen{}, err
 	}
 
 	fmt.Println(fechaString)
 
 	f, err := stringAFechasResumen(fechaString)
 	if err != nil {
-		return ports.Resumen{}, err
+		return types.Resumen{}, err
 	}
 
 	m, err := stringAMapMonedasResumen(monedasString)
 	if err != nil {
-		return ports.Resumen{}, err
+		return types.Resumen{}, err
 	}
 
-	r := make(ports.Resumen)
+	r := make(types.Resumen)
 	r["fechas"] = f
 	r["monedas"] = m
 

@@ -13,7 +13,7 @@ import (
 	reflect "reflect"
 
 	domain "github.com/juanmercurio/tp-go/internal/core/domain"
-	ports "github.com/juanmercurio/tp-go/internal/ports"
+	types "github.com/juanmercurio/tp-go/internal/ports/types"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -114,7 +114,7 @@ func (mr *MockRepositorioCotizacionesMockRecorder) CotizacionPorId(arg0 any) *go
 }
 
 // Cotizaciones mocks base method.
-func (m *MockRepositorioCotizaciones) Cotizaciones(arg0 ports.Filter) (int, []domain.Cotizacion, error) {
+func (m *MockRepositorioCotizaciones) Cotizaciones(arg0 types.Filter) (int, []domain.Cotizacion, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Cotizaciones", arg0)
 	ret0, _ := ret[0].(int)
@@ -145,7 +145,7 @@ func (mr *MockRepositorioCotizacionesMockRecorder) EsCotizacionManual(arg0 any) 
 }
 
 // Resumen mocks base method.
-func (m *MockRepositorioCotizaciones) Resumen(arg0 ports.Filter) (string, string, error) {
+func (m *MockRepositorioCotizaciones) Resumen(arg0 types.Filter) (string, string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Resumen", arg0)
 	ret0, _ := ret[0].(string)

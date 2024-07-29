@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/juanmercurio/tp-go/internal/core/domain"
-	"github.com/juanmercurio/tp-go/internal/ports"
+	"github.com/juanmercurio/tp-go/internal/ports/types"
 )
 
 // crea la query sin el select
-func QueryBaseCotizaciones(p ports.Filter) QueryBuilder {
+func QueryBaseCotizaciones(p types.Filter) QueryBuilder {
 
 	var sentencia QueryBuilder
 	sentencia.From = "FROM cotizacion"
@@ -48,14 +48,14 @@ func QueryBaseCotizaciones(p ports.Filter) QueryBuilder {
 	return sentencia
 }
 
-func ordenToString(orden ports.Orden) string {
+func ordenToString(orden types.Orden) string {
 	var columna, columnaOrden string
 	switch orden.TipoOrden {
-	case ports.OrdenPorFecha:
+	case types.OrdenPorFecha:
 		columna = "fecha"
-	case ports.OrdenPorNombre:
+	case types.OrdenPorNombre:
 		columna = "id_criptomoneda"
-	case ports.OrdenPorValor:
+	case types.OrdenPorValor:
 		columna = "valor"
 	}
 

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/juanmercurio/tp-go/internal/core/domain"
-	"github.com/juanmercurio/tp-go/internal/ports"
+	"github.com/juanmercurio/tp-go/internal/ports/types"
 )
 
 type RepositorioCotizaciones struct {
@@ -220,7 +220,7 @@ func (r RepositorioCotizaciones) Auditar(usuario int, cotizacion int, accion str
 
 }
 
-func (r RepositorioCotizaciones) Cotizaciones(parametros ports.Filter) (int, []domain.Cotizacion, error) {
+func (r RepositorioCotizaciones) Cotizaciones(parametros types.Filter) (int, []domain.Cotizacion, error) {
 
 	//TODO modularizar este codigo
 	q := QueryBaseCotizaciones(parametros)
@@ -249,7 +249,7 @@ func (r RepositorioCotizaciones) Cotizaciones(parametros ports.Filter) (int, []d
 }
 
 // la version facil del select seria --> select group_concat(distinct id_criptomoneda), concat(min(fecha), ',', max(fecha))
-func (r RepositorioCotizaciones) Resumen(parametros ports.Filter) (string, string, error) {
+func (r RepositorioCotizaciones) Resumen(parametros types.Filter) (string, string, error) {
 	q := QueryBaseCotizaciones(parametros)
 	q.Select = "SELECT JSON_ARRAYAGG(simbolo), JSON_OBJECT('fecha_min', min(fecha), 'fecha_max', max(fecha), 'count', count(*))"
 

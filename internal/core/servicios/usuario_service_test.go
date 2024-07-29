@@ -8,15 +8,15 @@ import (
 	"time"
 
 	"github.com/juanmercurio/tp-go/internal/core/domain"
-	"github.com/juanmercurio/tp-go/internal/ports"
 	mock_ports "github.com/juanmercurio/tp-go/internal/ports/mock"
+	"github.com/juanmercurio/tp-go/internal/ports/types"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
 
 func TestAltaUsuario_Success(t *testing.T) {
 
-	params := ports.AltaUsuarioParams{
+	params := types.AltaUsuarioParams{
 		Username:          "username",
 		Nombre:            "nombre",
 		Apellido:          "apellido",
@@ -37,7 +37,7 @@ func TestAltaUsuario_Success(t *testing.T) {
 
 func TestAltaUsuario_Fail(t *testing.T) {
 
-	paramsValidos := ports.AltaUsuarioParams{
+	paramsValidos := types.AltaUsuarioParams{
 		Username:          "username",
 		Nombre:            "nombre",
 		Apellido:          "apellido",
@@ -51,13 +51,13 @@ func TestAltaUsuario_Fail(t *testing.T) {
 
 	testCases := []struct {
 		name        string
-		params      ports.AltaUsuarioParams
+		params      types.AltaUsuarioParams
 		useCase     *UsuarioServicio
 		expectedErr error
 	}{
 		{
 			name: "Error de tipo de dni incorrecto",
-			params: ports.AltaUsuarioParams{
+			params: types.AltaUsuarioParams{
 				Username:          "username",
 				Nombre:            "nombre",
 				Apellido:          "apellido",
@@ -124,7 +124,7 @@ func TestAltaUsuario_Fail(t *testing.T) {
 
 func TestPatchUsuario_Fail(t *testing.T) {
 
-	patches := []ports.Patch{
+	patches := []types.Patch{
 		{
 			Op:         "cambiar",
 			Path:       "monedas",
@@ -282,7 +282,7 @@ func TestPatchUsuario_Fail(t *testing.T) {
 
 func TestPatchUsuario_Success(t *testing.T) {
 
-	patches := []ports.Patch{
+	patches := []types.Patch{
 		{
 			Op:         "cambiar",
 			Path:       "monedas",
@@ -341,7 +341,7 @@ func TestPatchUsuario_Success(t *testing.T) {
 
 func TestCrearUsuario_Fail(t *testing.T) {
 
-	paramsTipoDocInvalido := ports.AltaUsuarioParams{
+	paramsTipoDocInvalido := types.AltaUsuarioParams{
 		Username:          "username",
 		Nombre:            "nombre",
 		Apellido:          "apellido",
@@ -358,7 +358,7 @@ func TestCrearUsuario_Fail(t *testing.T) {
 
 func TestCrearUsuario_Success(t *testing.T) {
 
-	paramsTipoDocInvalido := ports.AltaUsuarioParams{
+	paramsTipoDocInvalido := types.AltaUsuarioParams{
 		Username:          "username",
 		Nombre:            "nombre",
 		Apellido:          "apellido",

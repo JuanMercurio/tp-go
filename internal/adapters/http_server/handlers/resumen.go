@@ -1,8 +1,6 @@
 package handlers
 
-import (
-	"github.com/juanmercurio/tp-go/internal/ports"
-)
+import "github.com/juanmercurio/tp-go/internal/ports/types"
 
 type Filtros struct {
 	Monedas        string `form:"monedas"`
@@ -15,10 +13,10 @@ type Filtros struct {
 	OrdenDireccion string `form:"orden_direccion"`
 }
 
-func (h CotizacionHandler) crearResumen(params ports.Filter) (ports.Resumen, error) {
+func (h CotizacionHandler) crearResumen(params types.Filter) (types.Resumen, error) {
 	resumen, err := h.sc.Resumen(params)
 	if err != nil {
-		return ports.Resumen{}, err
+		return types.Resumen{}, err
 	}
 
 	return resumen, nil

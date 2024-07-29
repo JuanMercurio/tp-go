@@ -1,4 +1,4 @@
-package ports
+package types
 
 import "time"
 
@@ -27,16 +27,6 @@ type Filter struct {
 }
 
 type Resumen map[string]any
-
-type AltaUsuarioParams struct {
-	Username          string
-	Nombre            string
-	Apellido          string
-	FechaDeNacimiento time.Time
-	Documento         string
-	TipoDocumento     string
-	Email             string
-}
 
 func (o Orden) TipoToString() string {
 	switch o.TipoOrden {

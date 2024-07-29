@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juanmercurio/tp-go/internal/ports"
+	"github.com/juanmercurio/tp-go/internal/ports/types"
 )
 
 type CotizacionHandler struct {
@@ -192,7 +193,7 @@ func (mh CotizacionHandler) BajaCotizacion(c *gin.Context) {
 // @Router		/cotizacion/{id} [put]
 func (mh CotizacionHandler) ActualizarCotizacion(c *gin.Context) {
 
-	var cotizacion ports.CotizacionPut
+	var cotizacion types.CotizacionPut
 	if err := c.BindJSON(&cotizacion); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("formato incorrecto: %w", err).Error()})
 		return
