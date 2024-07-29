@@ -367,7 +367,7 @@ func TestCrearUsuario_Success(t *testing.T) {
 		Email:             "email",
 	}
 
-	tiposDoc := []string{"DNI", "CEDULA", "PASAPORTE"}
+	tiposDoc := []string{"DNI", "CEDULA", "PASAPORTE", "dni", "cedula", "pasaporte"}
 
 	for _, tipo := range tiposDoc {
 		t.Run("Crear con usuario con tipo de documento: "+tipo, func(t *testing.T) {
