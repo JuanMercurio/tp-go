@@ -328,7 +328,7 @@ func TestPatchUsuario_Success(t *testing.T) {
 	ru := mock_ports.NewMockRepositorioUsuarios(ctrl)
 	rm := mock_ports.NewMockRepositorioMonedas(ctrl)
 
-	ru.EXPECT().UsuarioPorId(1).Return(usuario, nil)
+	ru.EXPECT().UsuarioPorId(1).AnyTimes().Return(usuario, nil)
 	rm.EXPECT().IdsDeSimbolos(gomock.Any()).AnyTimes().Return(monedas, nil)
 	ru.EXPECT().ReemplazarMonedas(gomock.Any(), gomock.Any()).Return(nil)
 	ru.EXPECT().EliminarMonedasUsuario(gomock.Any(), gomock.Any()).Return(nil)

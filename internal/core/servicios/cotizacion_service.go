@@ -166,7 +166,6 @@ func (s ServicioCotizacion) Resumen(filtros types.Filter) (types.Resumen, error)
 		return types.Resumen{}, err
 	}
 
-	fmt.Println(fechaString)
 
 	f, err := stringAFechasResumen(fechaString)
 	if err != nil {
